@@ -1,4 +1,4 @@
-import { UnifiedExperience, ColorRevealImage } from './components';
+import { UnifiedExperience, ColorRevealImage, TrophyPage } from './components';
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
 import { Trophy, Play, ChevronDown, ImagePlus } from 'lucide-react';
 import React, { useRef, useState, useEffect } from 'react';
@@ -89,15 +89,27 @@ function App() {
   };
 
   let activeIndex = 0;
-  if (progress >= 0.80) activeIndex = 4;
-  else if (progress >= 0.60) activeIndex = 3;
-  else if (progress >= 0.40) activeIndex = 2;
-  else if (progress >= 0.20) activeIndex = 1;
+  // Remap progress: trophy takes 0–0.25, gallery takes 0.25–1.0
+  const galleryProgress = Math.max(0, (progress - 0.25) / 0.75);
+  if (galleryProgress >= 0.80) activeIndex = 4;
+  else if (galleryProgress >= 0.60) activeIndex = 3;
+  else if (galleryProgress >= 0.40) activeIndex = 2;
+  else if (galleryProgress >= 0.20) activeIndex = 1;
 
   return (
-    <main ref={containerRef} className="text-white min-h-[600vh] selection:bg-white selection:text-black relative">
+    <main ref={containerRef} className="text-white min-h-[900vh] selection:bg-white selection:text-black relative">
+      {/* ═══ TROPHY SECTION (first page) ═══ */}
+      {progress < 0.25 && (
+        <TrophyPage scrollProgress={Math.min(progress / 0.2, 1)} />
+      )}
+
+      {/* Trophy scroll spacer — 3 viewports of scroll height */}
+      <section className="relative z-20 h-[300vh] pointer-events-none" />
+
+      {/* ═══ ORIGINAL CONTENT BELOW (unchanged) ═══ */}
+
       {/* Background Images */}
-      <div className="fixed inset-0 z-0 overflow-hidden bg-black">
+      <div className="fixed inset-0 z-0 overflow-hidden bg-black" style={{ opacity: progress < 0.2 ? 0 : 1, transition: 'opacity 0.5s' }}>
         {bgImages.map((src, i) => (
           <BackgroundLayer key={i} src={src} index={i} activeIndex={activeIndex} />
         ))}
