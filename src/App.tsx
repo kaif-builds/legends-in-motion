@@ -39,11 +39,12 @@ const BackgroundLayer = ({ src, index, activeIndex }: { key?: React.Key, src: st
   );
 };
 
-export default function App() {
+function App() {
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState(0);
   const [bgImages, setBgImages] = useState(DEFAULT_IMAGES);
+
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -94,7 +95,7 @@ export default function App() {
   else if (progress >= 0.20) activeIndex = 1;
 
   return (
-    <main ref={containerRef} className="text-white min-h-[500vh] selection:bg-white selection:text-black relative">
+    <main ref={containerRef} className="text-white min-h-[600vh] selection:bg-white selection:text-black relative">
       {/* Background Images */}
       <div className="fixed inset-0 z-0 overflow-hidden bg-black">
         {bgImages.map((src, i) => (
@@ -183,6 +184,10 @@ export default function App() {
           </div>
         </motion.div>
       </section>
+
+
     </main>
   );
 }
+
+export default App;

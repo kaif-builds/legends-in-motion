@@ -30,7 +30,8 @@ export const ColorRevealImage: React.FC<ColorRevealImageProps> = ({
 
       setMousePos({ x, y });
 
-      const mask = `radial-gradient(circle ${radius}px at ${x}px ${y}px, transparent 40px, rgba(0,0,0,0.15) 65px, black ${radius}px)`;
+      const revealRadius = radius * 1.65; // 10% larger reveal area
+      const mask = `radial-gradient(circle ${revealRadius}px at ${x}px ${y}px, transparent 0%, transparent 60%, black 100%)`;
       grayscaleRef.current.style.webkitMaskImage = mask;
       grayscaleRef.current.style.maskImage = mask;
     },
@@ -62,7 +63,7 @@ export const ColorRevealImage: React.FC<ColorRevealImageProps> = ({
       <img
         src={src}
         alt={alt}
-        className={`block w-full pointer-events-none ${imgClassName}`}
+        className={`block w-full pointer-events-none brightness-110 saturate-150 ${imgClassName}`}
         referrerPolicy="no-referrer"
       />
 
