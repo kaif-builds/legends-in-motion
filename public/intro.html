@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Intro Animation</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .intro-container {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .slide-img {
+            position: absolute;
+            max-width: 55vw;
+            max-height: 70vh;
+            object-fit: contain;
+            opacity: 0;
+            z-index: 2;
+            filter: contrast(1.15) saturate(1.1);
+            box-shadow: 0 0 120px rgba(255, 107, 53, 0.12), 0 30px 80px rgba(0, 0, 0, 0.7);
+        }
+
+        .flash {
+            position: absolute;
+            inset: 0;
+            background: white;
+            opacity: 0;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .accent-bar {
+            position: absolute;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #ff6b35, transparent);
+            z-index: 8;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+        }
+
+        .accent-bar.top {
+            top: 0;
+            left: 0;
+            right: 0;
+        }
+
+        .accent-bar.bottom {
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+
+        .corner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            z-index: 8;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.15s;
+        }
+
+        .corner::before,
+        .corner::after {
+            content: '';
+            position: absolute;
+            background: #ff6b35;
+        }
+
+        .corner.tl {
+            top: 20px;
+            left: 20px;
+        }
+
+        .corner.tl::before {
+            top: 0;
+            left: 0;
+            width: 20px;
+            height: 2px;
+        }
+
+        .corner.tl::after {
+            top: 0;
+            left: 0;
+            width: 2px;
+            height: 20px;
+        }
+
+        .corner.tr {
+            top: 20px;
+            right: 20px;
+        }
+
+        .corner.tr::before {
+            top: 0;
+            right: 0;
+            width: 20px;
+            height: 2px;
+        }
+
+        .corner.tr::after {
+            top: 0;
+            right: 0;
+            width: 2px;
+            height: 20px;
+        }
+
+        .corner.bl {
+            bottom: 20px;
+            left: 20px;
+        }
+
+        .corner.bl::before {
+            bottom: 0;
+            left: 0;
+            width: 20px;
+            height: 2px;
+        }
+
+        .corner.bl::after {
+            bottom: 0;
+            left: 0;
+            width: 2px;
+            height: 20px;
+        }
+
+        .corner.br {
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .corner.br::before {
+            bottom: 0;
+            right: 0;
+            width: 20px;
+            height: 2px;
+        }
+
+        .corner.br::after {
+            bottom: 0;
+            right: 0;
+            width: 2px;
+            height: 20px;
+        }
+
+        .glitch-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 9;
+            pointer-events: none;
+            opacity: 0;
+            mix-blend-mode: screen;
+        }
+
+        .glitch-layer.red {
+            background: rgba(255, 0, 0, 0.08);
+        }
+
+        .glitch-layer.cyan {
+            background: rgba(0, 255, 255, 0.06);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="intro-container" id="intro">
+        <div class="flash" id="flash"></div>
+        <div class="glitch-layer red" id="glitchRed"></div>
+        <div class="glitch-layer cyan" id="glitchCyan"></div>
+
+        <div class="accent-bar top" id="accentTop"></div>
+        <div class="accent-bar bottom" id="accentBottom"></div>
+        <div class="corner tl" id="cTL"></div>
+        <div class="corner tr" id="cTR"></div>
+        <div class="corner bl" id="cBL"></div>
+        <div class="corner br" id="cBR"></div>
+
+        <img class="slide-img" id="img0" src="/web_psd/1140-michael-jordan-the-shot.jpg" alt="" />
+        <img class="slide-img" id="img1" src="/web_psd/8365-9list.jpg" alt="" />
+        <img class="slide-img" id="img2" src="/web_psd/1024px-Usain_Bolt_Olympics_Celebration.jpg" alt="" />
+        <img class="slide-img" id="img3" src="/web_psd/7u8dqrjji8s71.jpg" alt="" />
+        <img class="slide-img" id="img4" src="/web_psd/833465-list.jpg" alt="" />
+        <img class="slide-img" id="img5" src="/web_psd/836005-list.jpg" alt="" />
+        <img class="slide-img" id="img6" src="/web_psd/8365-list.jpg" alt="" />
+        <img class="slide-img" id="img7" src="/web_psd/8365-li6st.jpg" alt="" />
+        <img class="slide-img" id="img8" src="/web_psd/83658-list.jpg" alt="" />
+        <img class="slide-img" id="img9" src="/web_psd/83965-list.jpg" alt="" />
+        <img class="slide-img" id="img10" src="/web_psd/Messi_vs_Nigeria1.jpg" alt="" />
+        <img class="slide-img" id="img11"
+            src="/web_psd/roger-federer-of-switzerland_16b5c3f0-2ae0-11e6-a271-92fd27615944.jpg" alt="" />
+    </div>
+
+    <script>
+        // ─── Config ───
+        const SLIDE_COUNT = 12;
+        const SPEED = 160;
+        const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+        const flashEl = document.getElementById('flash');
+        const glitchRed = document.getElementById('glitchRed');
+        const glitchCyan = document.getElementById('glitchCyan');
+
+        function triggerFlash(intensity = 0.3, dur = 60) {
+            flashEl.style.transition = 'none';
+            flashEl.style.opacity = String(intensity);
+            requestAnimationFrame(() => {
+                flashEl.style.transition = `opacity ${dur}ms ease-out`;
+                flashEl.style.opacity = '0';
+            });
+        }
+
+        function triggerGlitch(dur = 80) {
+            const dx = (Math.random() - 0.5) * 10;
+            glitchRed.style.transform = `translateX(${dx}px)`;
+            glitchCyan.style.transform = `translateX(${-dx}px)`;
+            glitchRed.style.opacity = '1';
+            glitchCyan.style.opacity = '1';
+            setTimeout(() => {
+                glitchRed.style.opacity = '0';
+                glitchCyan.style.opacity = '0';
+                glitchRed.style.transform = 'translateX(0)';
+                glitchCyan.style.transform = 'translateX(0)';
+            }, dur);
+        }
+
+        function setCorners(show) {
+            ['cTL', 'cTR', 'cBL', 'cBR'].forEach(id => {
+                document.getElementById(id).style.opacity = show ? '1' : '0';
+            });
+        }
+
+        function setAccents(show) {
+            document.getElementById('accentTop').style.opacity = show ? '1' : '0';
+            document.getElementById('accentBottom').style.opacity = show ? '1' : '0';
+        }
+
+        function hideAll() {
+            for (let i = 0; i < SLIDE_COUNT; i++) {
+                document.getElementById(`img${i}`).style.opacity = '0';
+            }
+        }
+
+        function showImage(idx) {
+            hideAll();
+            document.getElementById(`img${idx}`).style.opacity = '1';
+            triggerFlash(0.4, 80);
+            triggerGlitch(SPEED * 0.5);
+        }
+
+        async function rapidFire(totalSwitches) {
+            for (let i = 0; i < totalSwitches; i++) {
+                showImage(i % SLIDE_COUNT);
+                await sleep(SPEED);
+            }
+        }
+
+        // ─── Realistic image scatter ───
+        const blastCanvas = document.createElement('canvas');
+        blastCanvas.style.cssText = 'position:absolute;inset:0;z-index:20;pointer-events:none;';
+        document.getElementById('intro').appendChild(blastCanvas);
+        const bCtx = blastCanvas.getContext('2d');
+        blastCanvas.width = window.innerWidth;
+        blastCanvas.height = window.innerHeight;
+
+        class ImageParticle {
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = '#ffffff';  // Always white like hero particles
+                const angle = Math.random() * Math.PI * 2;
+                const speed = Math.random() * 14 + 4;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.size = Math.random() * 0.8 + 0.6;  // Small squares like hero (0.6–1.4px)
+                this.life = 1;
+                this.decay = Math.random() * 0.008 + 0.003;  // Slower decay so they linger
+            }
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+                this.vx *= 0.985;
+                this.vy *= 0.985;
+                // No gravity — hero particles float freely
+                this.life -= this.decay;
+            }
+            draw(ctx) {
+                if (this.life <= 0) return;
+                ctx.globalAlpha = this.life * 0.9;
+                ctx.fillStyle = this.color;
+                ctx.fillRect(this.x - this.size / 2, this.y - this.size / 2, this.size, this.size);
+            }
+        }
+
+        function runBlast() {
+            for (let i = 0; i < SLIDE_COUNT; i++) {
+                document.getElementById(`img${i}`).style.boxShadow = 'none';
+            }
+
+            let lastImg = null;
+            for (let i = SLIDE_COUNT - 1; i >= 0; i--) {
+                const el = document.getElementById(`img${i}`);
+                if (el.style.opacity === '1') { lastImg = el; break; }
+            }
+            if (!lastImg) lastImg = document.getElementById('img0');
+
+            const tmpCanvas = document.createElement('canvas');
+            const tmpCtx = tmpCanvas.getContext('2d');
+            const imgRect = lastImg.getBoundingClientRect();
+            tmpCanvas.width = imgRect.width;
+            tmpCanvas.height = imgRect.height;
+            tmpCtx.drawImage(lastImg, 0, 0, imgRect.width, imgRect.height);
+
+            let pixelData;
+            try { pixelData = tmpCtx.getImageData(0, 0, tmpCanvas.width, tmpCanvas.height).data; } catch (e) { pixelData = null; }
+
+            const blastParts = [];
+            const step = 2;  // Denser sampling = more tiny particles like hero section
+
+            if (pixelData) {
+                for (let py = 0; py < tmpCanvas.height; py += step) {
+                    for (let px = 0; px < tmpCanvas.width; px += step) {
+                        const idx = (py * tmpCanvas.width + px) * 4;
+                        const r = pixelData[idx];
+                        const g = pixelData[idx + 1];
+                        const b = pixelData[idx + 2];
+                        const a = pixelData[idx + 3];
+                        if (a < 50) continue;
+                        const screenX = imgRect.left + px;
+                        const screenY = imgRect.top + py;
+                        blastParts.push(new ImageParticle(screenX, screenY, `rgb(${r},${g},${b})`));
+                    }
+                }
+            } else {
+                const cx = blastCanvas.width / 2;
+                const cy = blastCanvas.height / 2;
+                for (let i = 0; i < 3000; i++) {
+                    const px = cx + (Math.random() - 0.5) * 500;
+                    const py = cy + (Math.random() - 0.5) * 400;
+                    blastParts.push(new ImageParticle(px, py, '#ffffff'));
+                }
+            }
+
+            lastImg.style.opacity = '0';
+
+            return new Promise(resolve => {
+                let frame = 0;
+                function animate() {
+                    bCtx.clearRect(0, 0, blastCanvas.width, blastCanvas.height);
+                    let alive = false;
+                    blastParts.forEach(p => {
+                        p.update();
+                        p.draw(bCtx);
+                        if (p.life > 0) alive = true;
+                    });
+                    bCtx.globalAlpha = 1;
+                    frame++;
+                    if (alive && frame < 250) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        resolve();
+                    }
+                }
+                animate();
+            });
+        }
+
+        // ─── Main sequence ───
+        async function runSequence() {
+            const firstImg = document.getElementById('img0');
+
+            firstImg.style.transition = 'none';
+            firstImg.style.opacity = '1';
+            firstImg.style.zIndex = '3';
+            firstImg.style.clipPath = 'inset(100% 0 0 0)';
+            firstImg.offsetHeight;
+
+            await sleep(200);
+
+            const riseDuration = 500;
+            firstImg.style.transition = `clip-path ${riseDuration}ms cubic-bezier(0.16, 1, 0.3, 1)`;
+            firstImg.style.clipPath = 'inset(0 0 0 0)';
+
+            await sleep(riseDuration * 0.3);
+
+            setCorners(true);
+            setAccents(true);
+            triggerFlash(0.3, 100);
+
+            await sleep(riseDuration * 0.7 + 100);
+
+            firstImg.style.opacity = '0';
+            firstImg.style.clipPath = '';
+            firstImg.style.transition = 'none';
+
+            // Rapid fire
+            await rapidFire(16);
+
+            // Show last image briefly
+            showImage(SLIDE_COUNT - 1);
+            await sleep(100);
+
+            // Blast
+            triggerFlash(1, 200);
+            triggerGlitch(150);
+            hideAll();
+            window.parent.postMessage('intro:blast', '*');
+
+            await runBlast();
+
+            await sleep(300);
+            const intro = document.getElementById('intro');
+            intro.style.transition = 'opacity 0.8s ease-out';
+            intro.style.opacity = '0';
+            await sleep(800);
+            intro.style.display = 'none';
+            window.parent.postMessage('intro:done', '*');
+        }
+
+        runSequence();
+    </script>
+</body>
+
+</html>

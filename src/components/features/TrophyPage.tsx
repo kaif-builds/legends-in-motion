@@ -138,6 +138,13 @@ interface TrophyPageProps {
 
 export const TrophyPage: React.FC<TrophyPageProps> = ({ scrollProgress }) => {
   const controlsRef = useRef<any>(null);
+  const [opacity, setOpacity] = React.useState(0);
+
+  // Fade in slowly when mounted
+  React.useEffect(() => {
+    const t = setTimeout(() => setOpacity(1), 50); // tiny delay to let paint happen
+    return () => clearTimeout(t);
+  }, []);
 
   return (
     <div
@@ -146,6 +153,8 @@ export const TrophyPage: React.FC<TrophyPageProps> = ({ scrollProgress }) => {
         inset: 0,
         zIndex: 60,
         background: '#000',
+        opacity,
+        transition: 'opacity 2s ease',
       }}
     >
       <Canvas

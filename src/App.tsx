@@ -1,4 +1,4 @@
-import { UnifiedExperience, ColorRevealImage, TrophyPage } from './components';
+import { UnifiedExperience, ColorRevealImage, TrophyPage, IntroGate } from './components';
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
 import { Trophy, Play, ChevronDown, ImagePlus } from 'lucide-react';
 import React, { useRef, useState, useEffect } from 'react';
@@ -44,6 +44,107 @@ function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [progress, setProgress] = useState(0);
   const [bgImages, setBgImages] = useState(DEFAULT_IMAGES);
+  const [showIntro, setShowIntro] = useState(true);
+  const [particlesStarted, setParticlesStarted] = useState(false);
+  const [bgReady, setBgReady] = useState(false);
+  const boomRef = useRef<HTMLAudioElement | null>(null);
+  const bgMusicRef = useRef<HTMLAudioElement | null>(null);
+  const bgMusicStartedRef = useRef(false);
+  const [heroFormed, setHeroFormed] = useState(false);
+
+  // ── Scroll to top on every page load / refresh ──
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if ('scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+    }
+  }, []);
+
+  // ── Preload boom sound ──
+  useEffect(() => {
+    const audio = new Audio('/assets/Boom 1.mp3');
+    audio.preload = 'auto';
+    audio.volume = 1.0;
+    boomRef.current = audio;
+  }, []);
+
+  // ── Preload background music ──
+  useEffect(() => {
+    const music = new Audio('/assets/nuthin-but-a-g-thang-dr-dre-snoop-dogg_sNZM7bxL.mp3');
+    music.preload = 'auto';
+    music.loop = true;
+    music.volume = 0.05; // subtle background level
+    bgMusicRef.current = music;
+    return () => {
+      music.pause();
+      music.src = '';
+    };
+  }, []);
+
+  // ── Play boom 1 second before hero text fully locks (at 1500ms of 2500ms entrance) ──
+  const handleBoom = React.useCallback(() => {
+    if (boomRef.current) {
+      boomRef.current.currentTime = 0;
+      boomRef.current.play().catch(() => {});
+    }
+  }, []);
+
+  // ── Hero text fully formed — unlock background music trigger ──
+  const handleHeroFormed = React.useCallback(() => {
+    setHeroFormed(true);
+  }, []);
+
+  // ── Start background music on first scroll after hero forms ──
+  // Uses wheel/touchstart so it fires inside a real user-gesture context (bypasses autoplay block)
+  useEffect(() => {
+    if (!heroFormed || bgMusicStartedRef.current) return;
+
+    const startMusic = () => {
+      if (bgMusicStartedRef.current) return;
+      bgMusicStartedRef.current = true;
+      if (bgMusicRef.current) {
+        bgMusicRef.current.currentTime = 0;
+        bgMusicRef.current.play().catch(() => {});
+      }
+      window.removeEventListener('wheel', startMusic);
+      window.removeEventListener('touchstart', startMusic);
+      window.removeEventListener('keydown', startMusic);
+    };
+
+    window.addEventListener('wheel', startMusic, { passive: true });
+    window.addEventListener('touchstart', startMusic, { passive: true });
+    window.addEventListener('keydown', startMusic);
+
+    return () => {
+      window.removeEventListener('wheel', startMusic);
+      window.removeEventListener('touchstart', startMusic);
+      window.removeEventListener('keydown', startMusic);
+    };
+  }, [heroFormed]);
+
+  // ── Fade background music out as user approaches trophy section ──
+  useEffect(() => {
+    const music = bgMusicRef.current;
+    if (!music || !bgMusicStartedRef.current) return;
+
+    // Fade starts at progress 0.78 (final scatter begins), settles at a whisper by 0.90
+    const MIN_VOL = 0.012;
+    const MAX_VOL = 0.05;
+    if (progress >= 0.78) {
+      const fadeT = Math.min(1, (progress - 0.78) / 0.12);
+      music.volume = MAX_VOL - (MAX_VOL - MIN_VOL) * fadeT;
+    } else {
+      music.volume = MAX_VOL;
+    }
+  }, [progress]);
+
+  // Start fading background in once particles begin forming the hero text
+  useEffect(() => {
+    if (!particlesStarted) return;
+    // Small delay so the text starts forming first, then bg rises in
+    const t = setTimeout(() => setBgReady(true), 800);
+    return () => clearTimeout(t);
+  }, [particlesStarted]);
 
 
   useEffect(() => {
@@ -89,27 +190,35 @@ function App() {
   };
 
   let activeIndex = 0;
-  // Remap progress: trophy takes 0–0.25, gallery takes 0.25–1.0
-  const galleryProgress = Math.max(0, (progress - 0.25) / 0.75);
-  if (galleryProgress >= 0.80) activeIndex = 4;
-  else if (galleryProgress >= 0.60) activeIndex = 3;
-  else if (galleryProgress >= 0.40) activeIndex = 2;
-  else if (galleryProgress >= 0.20) activeIndex = 1;
+  // 5 images aligned to particle phases:
+  // Image 1: 0–0.12 (Hero), Image 2: 0.12–0.38 (ARE YOU),
+  // Image 3: 0.38–0.56 (scatter), Image 4: 0.56–0.68 (READY? forming),
+  // Image 5: 0.68–0.78 (READY? held)
+  if (progress >= 0.68) activeIndex = 4;
+  else if (progress >= 0.56) activeIndex = 3;
+  else if (progress >= 0.38) activeIndex = 2;
+  else if (progress >= 0.12) activeIndex = 1;
+
+  // Trophy appears after final scatter (progress 0.87–1.0)
+  const trophyProgress = Math.max(0, (progress - 0.87) / 0.13);
 
   return (
-    <main ref={containerRef} className="text-white min-h-[900vh] selection:bg-white selection:text-black relative">
-      {/* ═══ TROPHY SECTION (first page) ═══ */}
-      {progress < 0.25 && (
-        <TrophyPage scrollProgress={Math.min(progress / 0.2, 1)} />
+    <main ref={containerRef} className="text-white min-h-[700vh] selection:bg-white selection:text-black relative">
+      {showIntro && (
+        <IntroGate
+          onBlast={() => setParticlesStarted(true)}
+          onComplete={() => setShowIntro(false)}
+        />
       )}
+      {/* Trophy has been moved to the end */}
 
-      {/* Trophy scroll spacer — 3 viewports of scroll height */}
+      {/* Scroll spacer */}
       <section className="relative z-20 h-[300vh] pointer-events-none" />
 
       {/* ═══ ORIGINAL CONTENT BELOW (unchanged) ═══ */}
 
-      {/* Background Images */}
-      <div className="fixed inset-0 z-0 overflow-hidden bg-black" style={{ opacity: progress < 0.2 ? 0 : 1, transition: 'opacity 0.5s' }}>
+      {/* Background Images — fades in as hero text forms */}
+      <div className="fixed inset-0 z-0 overflow-hidden bg-black" style={{ opacity: bgReady ? 1 : 0, transition: 'opacity 2.5s ease' }}>
         {bgImages.map((src, i) => (
           <BackgroundLayer key={i} src={src} index={i} activeIndex={activeIndex} />
         ))}
@@ -134,9 +243,9 @@ function App() {
         </button>
       </div>
 
-      {/* Fixed Background Experience */}
-      <div className="relative z-10 pointer-events-none">
-        <UnifiedExperience progress={progress} />
+      {/* Fixed Background Experience — z-[10000] so particles render above intro during fade */}
+      <div className="fixed inset-0 z-[10000] pointer-events-none">
+        <UnifiedExperience progress={progress} startEntrance={particlesStarted} onHeroFormed={handleHeroFormed} onBoom={handleBoom} />
       </div>
 
       {/* Hero Section Overlay (0 to 0.20) */}
@@ -196,6 +305,12 @@ function App() {
           </div>
         </motion.div>
       </section>
+
+      {/* ═══ TROPHY SECTION — at the very end after final scatter ═══ */}
+      <section className="relative z-20 h-[200vh] pointer-events-none" />
+      {progress >= 0.85 && (
+        <TrophyPage scrollProgress={trophyProgress} />
+      )}
 
 
     </main>

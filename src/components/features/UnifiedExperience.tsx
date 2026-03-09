@@ -37,6 +37,9 @@ interface Particle {
 interface UnifiedExperienceProps {
   progress: number;
   className?: string;
+  startEntrance?: boolean;  // triggered when intro blast fires
+  onHeroFormed?: () => void; // called once when hero text is fully formed (2500ms)
+  onBoom?: () => void;       // called 1 second before hero text locks (1500ms)
 }
 
 const COLORS = ['#FFFFFF', '#F0F0F0', '#E8E8E8'];
@@ -48,6 +51,9 @@ function cn(...classes: (string | undefined)[]) {
 export const UnifiedExperience: React.FC<UnifiedExperienceProps> = ({
   progress,
   className,
+  startEntrance = false,
+  onHeroFormed,
+  onBoom,
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
@@ -79,23 +85,36 @@ export const UnifiedExperience: React.FC<UnifiedExperienceProps> = ({
     };
   }, []);
 
+  const heroFormedCalledRef = useRef(false);
+  const boomCalledRef = useRef(false);
+
   useEffect(() => {
-    if (!isInitialized) return;
+    if (!isInitialized || !startEntrance) return;
 
     let start: number | null = null;
     const duration = 2500;
+    const boomAt = 2000; // fire boom 0.5s before text locks
 
     const step = (timestamp: number) => {
       if (!start) start = timestamp;
       const elapsed = timestamp - start;
       const p = Math.min(1, elapsed / duration);
       entranceProgressRef.current = p;
+
+      if (elapsed >= boomAt && !boomCalledRef.current) {
+        boomCalledRef.current = true;
+        onBoom?.();
+      }
+      if (p >= 1 && !heroFormedCalledRef.current) {
+        heroFormedCalledRef.current = true;
+        onHeroFormed?.();
+      }
       if (p < 1) {
         requestAnimationFrame(step);
       }
     };
     requestAnimationFrame(step);
-  }, [isInitialized]);
+  }, [isInitialized, startEntrance, onHeroFormed, onBoom]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -349,59 +368,58 @@ export const UnifiedExperience: React.FC<UnifiedExperienceProps> = ({
         const s6y = centerY + Math.sin(finalAngle2) * finalDist2;
         const s6z = p.scatterZ + Math.sin(p.noiseOffset * 19) * 1000;
 
-        // ── Phase Interpolation ───────────────────────────────────────
-        if (progress < 0.10) {
-          // Hold Hero
+        // ── Phase Interpolation (5 images, READY? on 5th, scatter→trophy) ──
+        if (progress < 0.12) {
+          // Hold Hero (image 1)
           tx = s0x; ty = s0y; tz = s0z;
-        } else if (progress < 0.25) {
-          // Distort and scatter to "ARE YOU"
-          const t = (progress - 0.10) / 0.15;
+        } else if (progress < 0.26) {
+          // Distort and transition to "ARE YOU" (image 2)
+          const t = (progress - 0.12) / 0.14;
           const ease = t * t * (3 - 2 * t);
           tx = s0x + (s3x - s0x) * ease;
           ty = s0y + (s3y - s0y) * ease;
           tz = s0z + (s3z - s0z) * ease;
-          // Add some distortion in the middle
           tx += (s1x - p.heroX) * Math.sin(ease * Math.PI);
           ty += (s1y - p.heroY) * Math.sin(ease * Math.PI);
           tz += (s1z - p.heroZ) * Math.sin(ease * Math.PI);
-        } else if (progress < 0.35) {
-          // Hold "ARE YOU"
+        } else if (progress < 0.38) {
+          // Hold "ARE YOU" (image 2)
           tx = s3x; ty = s3y; tz = s3z;
-        } else if (progress < 0.45) {
-          // Scatter 2
-          const t = (progress - 0.35) / 0.10;
+        } else if (progress < 0.48) {
+          // Scatter 2 (image 3)
+          const t = (progress - 0.38) / 0.10;
           const ease = t * t * (3 - 2 * t);
           tx = s3x + (s4x - s3x) * ease;
           ty = s3y + (s4y - s3y) * ease;
           tz = s3z + (s4z - s3z) * ease;
-        } else if (progress < 0.55) {
-          // Hold Scatter 2
+        } else if (progress < 0.56) {
+          // Hold Scatter 2 (image 3/4)
           tx = s4x; ty = s4y; tz = s4z;
-        } else if (progress < 0.65) {
-          // Form "READY?"
-          const t = (progress - 0.55) / 0.10;
+        } else if (progress < 0.68) {
+          // Form "READY?" (image 4 → 5)
+          const t = (progress - 0.56) / 0.12;
           const adjustedT = Math.max(0, Math.min(1, (t - p.spiralDelay * 0.2) / 0.8));
           const ease = adjustedT * adjustedT * (3 - 2 * adjustedT);
-          
+
           const spiralTurns = 1;
           const currentAngle = (1 - ease) * Math.PI * 2 * spiralTurns + p.noiseOffset;
           const radius = (1 - ease) * Math.min(w, h) * 0.3;
-          
+
           tx = s4x + (s5x - s4x) * ease + Math.cos(currentAngle) * radius;
           ty = s4y + (s5y - s4y) * ease + Math.sin(currentAngle) * radius;
           tz = s4z + (s5z - s4z) * ease;
-        } else if (progress < 0.75) {
-          // Hold "READY?"
+        } else if (progress < 0.78) {
+          // Hold "READY?" (image 5)
           tx = s5x; ty = s5y; tz = s5z;
-        } else if (progress < 0.85) {
-          // Scatter 3
-          const t = (progress - 0.75) / 0.10;
+        } else if (progress < 0.87) {
+          // Final Scatter
+          const t = (progress - 0.78) / 0.09;
           const ease = t * t * (3 - 2 * t);
           tx = s5x + (s6x - s5x) * ease;
           ty = s5y + (s6y - s5y) * ease;
           tz = s5z + (s6z - s5z) * ease;
         } else {
-          // Hold Scatter 3
+          // Hold final scatter (trophy takes over)
           tx = s6x; ty = s6y; tz = s6z;
         }
 
@@ -429,13 +447,13 @@ export const UnifiedExperience: React.FC<UnifiedExperienceProps> = ({
         if (isMouseAffected) {
           damping = 0.95;
           stiffness = 0.01;
-        } else if (progress < 0.10 || (progress >= 0.25 && progress < 0.35) || (progress >= 0.65 && progress < 0.75)) {
+        } else if (progress < 0.12 || (progress >= 0.26 && progress < 0.38) || (progress >= 0.68 && progress < 0.78)) {
           // Holding formed text
           stiffness = distToTarget < 2 ? 0.5 : 0.15;
           damping = distToTarget < 1 ? 0.1 : 0.6;
-        } else if (progress >= 0.10 && progress < 0.25) {
+        } else if (progress >= 0.12 && progress < 0.26) {
           // Transition to "ARE YOU"
-          const t = (progress - 0.10) / 0.15;
+          const t = (progress - 0.12) / 0.14;
           if (t > 0.8 && distToTarget < 5) {
             stiffness = 0.5;
             damping = 0.2;
@@ -443,9 +461,9 @@ export const UnifiedExperience: React.FC<UnifiedExperienceProps> = ({
             stiffness = 0.05;
             damping = 0.8;
           }
-        } else if (progress >= 0.55 && progress < 0.65) {
+        } else if (progress >= 0.56 && progress < 0.68) {
           // Transition to "READY?"
-          const t = (progress - 0.55) / 0.10;
+          const t = (progress - 0.56) / 0.12;
           if (t > 0.8 && distToTarget < 5) {
             stiffness = 0.5;
             damping = 0.2;
@@ -499,7 +517,7 @@ export const UnifiedExperience: React.FC<UnifiedExperienceProps> = ({
         // ── Organic Wandering ─────────────────────────────────────────
         let wanderFactor: number;
 
-        if (progress < 0.10 || (progress >= 0.25 && progress < 0.35) || (progress >= 0.65 && progress < 0.75)) {
+        if (progress < 0.12 || (progress >= 0.26 && progress < 0.38) || (progress >= 0.68 && progress < 0.78)) {
           if (distToTarget < 1) {
             wanderFactor = 0;
           } else if (distToTarget < 5) {
@@ -518,7 +536,7 @@ export const UnifiedExperience: React.FC<UnifiedExperienceProps> = ({
         }
 
         // Add some noise during scattered phases
-        if ((progress >= 0.35 && progress < 0.55) || progress >= 0.75) {
+        if ((progress >= 0.38 && progress < 0.56) || progress >= 0.78) {
           const n = 0.4;
           p.vx += (Math.random() - 0.5) * n;
           p.vy += (Math.random() - 0.5) * n;
@@ -531,9 +549,9 @@ export const UnifiedExperience: React.FC<UnifiedExperienceProps> = ({
         // Snap to exact position when very close (only if not mouse-affected)
         if (
           !isMouseAffected &&
-          ((progress < 0.10) ||
-            (progress >= 0.25 && progress < 0.35) ||
-            (progress >= 0.65 && progress < 0.75))
+          ((progress < 0.12) ||
+            (progress >= 0.26 && progress < 0.38) ||
+            (progress >= 0.68 && progress < 0.78))
         ) {
           if (distToTarget < 0.5) {
             p.x = tx;
@@ -558,31 +576,39 @@ export const UnifiedExperience: React.FC<UnifiedExperienceProps> = ({
         const sx = (p.x - centerX) * scale + centerX;
         const sy = (p.y - centerY) * scale + centerY;
 
-        // ── Opacity ───────────────────────────────────────────────────
+        // ── Opacity (aligned to phase thresholds) ─────────────────────
         let alpha = 1;
         if (progress < 0.05) {
+          // Entrance fade-in
           const t = Math.max(entranceProgressRef.current, progress / 0.05);
           alpha = 0.5 + t * 0.5;
-        } else if (progress >= 0.05 && progress < 0.15) {
-          alpha = 1 - ((progress - 0.05) / 0.10) * 0.7; // Fade down to 0.3 during distortion
-        } else if (progress >= 0.15 && progress < 0.25) {
-          const t = (progress - 0.15) / 0.10;
-          alpha = 0.3 + t * 0.7; // Fade back up to 1.0 for ARE YOU
-        } else if (progress >= 0.25 && progress < 0.35) {
+        } else if (progress < 0.12) {
+          alpha = 1; // Hold Hero
+        } else if (progress < 0.19) {
+          // Fade down during distort/transition to ARE YOU
+          alpha = 1 - ((progress - 0.12) / 0.07) * 0.7;
+        } else if (progress < 0.26) {
+          // Fade back up as ARE YOU forms
+          const t = (progress - 0.19) / 0.07;
+          alpha = 0.3 + t * 0.7;
+        } else if (progress < 0.38) {
           alpha = 1; // Hold ARE YOU
-        } else if (progress >= 0.35 && progress < 0.45) {
-          alpha = 1 - ((progress - 0.35) / 0.10) * 0.8; // Fade down to 0.2 during scatter
-        } else if (progress >= 0.45 && progress < 0.55) {
+        } else if (progress < 0.48) {
+          // Fade down during scatter
+          alpha = 1 - ((progress - 0.38) / 0.10) * 0.8;
+        } else if (progress < 0.56) {
           alpha = 0.2; // Hold scatter
-        } else if (progress >= 0.55 && progress < 0.65) {
-          const t = (progress - 0.55) / 0.10;
-          alpha = 0.2 + t * 0.8; // Fade back up to 1.0 for READY?
-        } else if (progress >= 0.65 && progress < 0.75) {
+        } else if (progress < 0.68) {
+          // Fade back up as READY? forms
+          const t = (progress - 0.56) / 0.12;
+          alpha = 0.2 + t * 0.8;
+        } else if (progress < 0.78) {
           alpha = 1; // Hold READY?
-        } else if (progress >= 0.75 && progress < 0.85) {
-          alpha = 1 - ((progress - 0.75) / 0.10) * 0.8; // Fade down to 0.2 during scatter
+        } else if (progress < 0.87) {
+          // Fade down during final scatter
+          alpha = 1 - ((progress - 0.78) / 0.09) * 0.8;
         } else {
-          alpha = 0.2; // Hold scatter
+          alpha = 0.2; // Hold final scatter (trophy)
         }
 
         // ── Draw ──────────────────────────────────────────────────────
@@ -590,7 +616,7 @@ export const UnifiedExperience: React.FC<UnifiedExperienceProps> = ({
 
         const sz = Math.max(0.5, p.size * scale);
 
-        const isTextPhaseCurrent = (progress < 0.10) || (progress >= 0.25 && progress < 0.35) || (progress >= 0.65 && progress < 0.75);
+        const isTextPhaseCurrent = (progress < 0.12) || (progress >= 0.26 && progress < 0.38) || (progress >= 0.68 && progress < 0.78);
 
         if (isTextPhaseCurrent && distToTarget < 1 && !isMouseAffected) {
           const rx = Math.round(sx);
@@ -617,6 +643,10 @@ export const UnifiedExperience: React.FC<UnifiedExperienceProps> = ({
         'fixed inset-0 w-full h-full pointer-events-none z-0',
         className
       )}
+      style={{
+        opacity: startEntrance ? 1 : 0,
+        transition: 'opacity 0.3s ease',
+      }}
     >
       <canvas ref={canvasRef} className="w-full h-full" />
     </div>
