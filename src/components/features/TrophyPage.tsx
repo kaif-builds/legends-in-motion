@@ -4,6 +4,21 @@ import { EffectComposer, Bloom } from '@react-three/postprocessing';
 import { OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { TrophyScene, trophyFitData } from './Trophy';
+import { WorldCupOrbit } from './WorldCupOrbit';
+
+/* ─── Bridge: reads camera azimuthal angle and writes to shared ref ─── */
+function CameraAngleBridge({ angleRef }: { angleRef: React.MutableRefObject<number> }) {
+  const { camera } = useThree();
+  const spherical = useMemo(() => new THREE.Spherical(), []);
+
+  useFrame(() => {
+    spherical.setFromVector3(camera.position);
+    // theta is the azimuthal angle (horizontal rotation)
+    angleRef.current = spherical.theta;
+  });
+
+  return null;
+}
 
 /* ─── Interactive particles that react to mouse ─── */
 const PARTICLE_COUNT = 600;
@@ -138,6 +153,7 @@ interface TrophyPageProps {
 
 export const TrophyPage: React.FC<TrophyPageProps> = ({ scrollProgress }) => {
   const controlsRef = useRef<any>(null);
+  const cameraAngleRef = useRef(0);
   const [opacity, setOpacity] = React.useState(0);
 
   // Fade in slowly when mounted
@@ -165,6 +181,7 @@ export const TrophyPage: React.FC<TrophyPageProps> = ({ scrollProgress }) => {
       >
         <Suspense fallback={null}>
           <ScrollTarget scrollProgress={scrollProgress} controlsRef={controlsRef} />
+          <CameraAngleBridge angleRef={cameraAngleRef} />
           <OrbitControls
             ref={controlsRef}
             enableDamping
@@ -187,6 +204,9 @@ export const TrophyPage: React.FC<TrophyPageProps> = ({ scrollProgress }) => {
           </EffectComposer>
         </Suspense>
       </Canvas>
+
+      {/* World Cup host nation flags orbiting the trophy */}
+      <WorldCupOrbit cameraAngleRef={cameraAngleRef} />
 
       {/* Credit line */}
       <div
