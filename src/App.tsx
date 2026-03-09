@@ -1,4 +1,4 @@
-import { UnifiedExperience, ColorRevealImage, TrophyPage, IntroGate } from './components';
+import { UnifiedExperience, ColorRevealImage, TrophyPage, IntroGate, DeepSpacePage } from './components';
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
 import { Trophy, Play, ChevronDown, ImagePlus } from 'lucide-react';
 import React, { useRef, useState, useEffect } from 'react';
@@ -199,11 +199,20 @@ function App() {
   else if (progress >= 0.38) activeIndex = 2;
   else if (progress >= 0.12) activeIndex = 1;
 
-  // Trophy appears after final scatter (progress 0.87–1.0)
-  const trophyProgress = Math.max(0, (progress - 0.87) / 0.13);
+  // Trophy appears after final scatter (progress 0.85–0.95)
+  // scrollProgress drives the camera pull-back inside TrophyPage
+  const trophyVisible = progress >= 0.85;
+  const trophyProgress = Math.max(0, Math.min(1, (progress - 0.85) / 0.10));
+  // Trophy fades OUT as deep space fades in (0.93 → 0.97)
+  const trophyOpacity = progress >= 0.93 ? Math.max(0, 1 - (progress - 0.93) / 0.04) : 1;
+
+  // Deep space fades IN as trophy fades out (0.93 → 0.97), then fully visible
+  const deepSpaceVisible = progress >= 0.93;
+  const deepSpaceOpacity = Math.min(1, (progress - 0.93) / 0.04);
+  const deepSpaceProgress = Math.max(0, (progress - 0.97) / 0.03);
 
   return (
-    <main ref={containerRef} className="text-white min-h-[700vh] selection:bg-white selection:text-black relative">
+    <main ref={containerRef} className="text-white min-h-[1000vh] selection:bg-white selection:text-black relative">
       {showIntro && (
         <IntroGate
           onBlast={() => setParticlesStarted(true)}
@@ -308,9 +317,31 @@ function App() {
 
       {/* ═══ TROPHY SECTION — at the very end after final scatter ═══ */}
       <section className="relative z-20 h-[200vh] pointer-events-none" />
-      {progress >= 0.85 && (
-        <TrophyPage scrollProgress={trophyProgress} />
+      {trophyVisible && (
+        <div
+          className="fixed inset-0 pointer-events-auto"
+          style={{ zIndex: 60, opacity: trophyOpacity, transition: 'opacity 0.4s ease' }}
+        >
+          <TrophyPage scrollProgress={trophyProgress} />
+        </div>
       )}
+
+      {/* ═══ DEEP SPACE — fades in on top of trophy as user scrolls past ═══ */}
+      {deepSpaceVisible && (
+        <div
+          className="fixed inset-0 pointer-events-auto"
+          style={{
+            zIndex: 65,
+            opacity: deepSpaceOpacity,
+            transition: 'opacity 0.3s ease',
+          }}
+        >
+          <DeepSpacePage scrollProgress={deepSpaceProgress} />
+        </div>
+      )}
+
+      {/* Extra scroll runway for deep space exploration */}
+      <section className="relative z-20 h-[200vh] pointer-events-none" />
 
 
     </main>

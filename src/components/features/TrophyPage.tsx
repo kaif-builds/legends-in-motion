@@ -165,10 +165,9 @@ export const TrophyPage: React.FC<TrophyPageProps> = ({ scrollProgress }) => {
   return (
     <div
       style={{
-        position: 'fixed',
+        position: 'absolute',
         inset: 0,
-        zIndex: 60,
-        background: '#000',
+        background: 'linear-gradient(180deg, #000 0%, #000 70%, #020010 90%, #020010 100%)',
         opacity,
         transition: 'opacity 2s ease',
       }}
