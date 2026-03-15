@@ -337,7 +337,7 @@
             try { pixelData = tmpCtx.getImageData(0, 0, tmpCanvas.width, tmpCanvas.height).data; } catch (e) { pixelData = null; }
 
             const blastParts = [];
-            const step = 2;  // Denser sampling = more tiny particles like hero section
+            const step = 6;  // Sparser sampling = fewer particles for better performance
 
             if (pixelData) {
                 for (let py = 0; py < tmpCanvas.height; py += step) {
@@ -356,7 +356,7 @@
             } else {
                 const cx = blastCanvas.width / 2;
                 const cy = blastCanvas.height / 2;
-                for (let i = 0; i < 3000; i++) {
+                for (let i = 0; i < 800; i++) {
                     const px = cx + (Math.random() - 0.5) * 500;
                     const py = cy + (Math.random() - 0.5) * 400;
                     blastParts.push(new ImageParticle(px, py, '#ffffff'));
@@ -416,7 +416,7 @@
             firstImg.style.transition = 'none';
 
             // Rapid fire
-            await rapidFire(16);
+            await rapidFire(10);
 
             // Show last image briefly
             showImage(SLIDE_COUNT - 1);

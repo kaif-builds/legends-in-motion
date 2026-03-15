@@ -76,7 +76,7 @@ const scrollMul  = (z: number) => lerp(10, 60, z);  // vh
 /* ═══════════════════════════════════════════════════════════════
    THREE.JS — same golden ambient particle field as TrophyPage
    ═══════════════════════════════════════════════════════════════ */
-const PARTICLE_COUNT = 600;
+const PARTICLE_COUNT = 200;
 
 function GoldenParticles() {
   const meshRef   = useRef<THREE.InstancedMesh>(null);
@@ -158,7 +158,7 @@ function GoldenParticles() {
         <meshBasicMaterial />
       </mesh>
       <instancedMesh ref={meshRef} args={[undefined, undefined, PARTICLE_COUNT]}>
-        <sphereGeometry args={[1, 8, 8]} />
+        <sphereGeometry args={[1, 4, 4]} />
         <meshBasicMaterial toneMapped={false} />
       </instancedMesh>
     </>

@@ -17,7 +17,7 @@ export const ColorRevealImage: React.FC<ColorRevealImageProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const grayscaleRef = useRef<HTMLImageElement>(null);
-  const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+  const cursorRef = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
   const handleMouseMove = useCallback(
@@ -28,9 +28,12 @@ export const ColorRevealImage: React.FC<ColorRevealImageProps> = ({
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      setMousePos({ x, y });
+      // Update cursor dot position via ref (no re-render)
+      if (cursorRef.current) {
+        cursorRef.current.style.transform = `translate(${x - 3}px, ${y - 3}px)`;
+      }
 
-      const revealRadius = radius * 1.65; // 10% larger reveal area
+      const revealRadius = radius * 1.65;
       const mask = `radial-gradient(circle ${revealRadius}px at ${x}px ${y}px, transparent 0%, transparent 60%, black 100%)`;
       grayscaleRef.current.style.webkitMaskImage = mask;
       grayscaleRef.current.style.maskImage = mask;
@@ -48,7 +51,6 @@ export const ColorRevealImage: React.FC<ColorRevealImageProps> = ({
       grayscaleRef.current.style.webkitMaskImage = 'none';
       grayscaleRef.current.style.maskImage = 'none';
     }
-    setMousePos({ x: -1000, y: -1000 });
   }, []);
 
   return (
@@ -83,13 +85,14 @@ export const ColorRevealImage: React.FC<ColorRevealImageProps> = ({
       {/* Custom Cursor */}
       {isHovered && (
         <>
-          {/* White Dot */}
           <div
+            ref={cursorRef}
             className="w-1.5 h-1.5 bg-white rounded-full pointer-events-none z-50"
             style={{
-              left: mousePos.x - 3,
-              top: mousePos.y - 3,
               position: 'absolute',
+              top: 0,
+              left: 0,
+              willChange: 'transform',
             }}
           />
         </>

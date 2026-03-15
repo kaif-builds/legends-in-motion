@@ -39,10 +39,22 @@ const BackgroundLayer = ({ src, index, activeIndex }: { key?: React.Key, src: st
   );
 };
 
+// Compute discrete phase from continuous progress to minimize re-renders
+function getPhase(p: number): number {
+  if (p >= 0.79) return 6; // deep space visible
+  if (p >= 0.71) return 5; // trophy visible
+  if (p >= 0.54) return 4;
+  if (p >= 0.42) return 3;
+  if (p >= 0.24) return 2;
+  if (p >= 0.05) return 1;
+  return 0;
+}
+
 function App() {
   const containerRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [progress, setProgress] = useState(0);
+  const progressRef = useRef(0);
+  const [phase, setPhase] = useState(0);
   const [bgImages, setBgImages] = useState(DEFAULT_IMAGES);
   const [showIntro, setShowIntro] = useState(true);
   const [particlesStarted, setParticlesStarted] = useState(false);
@@ -123,20 +135,8 @@ function App() {
   }, [heroFormed]);
 
   // ── Fade background music out as user approaches trophy section ──
-  useEffect(() => {
-    const music = bgMusicRef.current;
-    if (!music || !bgMusicStartedRef.current) return;
-
-    // Fade starts at progress 0.78 (final scatter begins), settles at a whisper by 0.90
-    const MIN_VOL = 0.012;
-    const MAX_VOL = 0.05;
-    if (progress >= 0.78) {
-      const fadeT = Math.min(1, (progress - 0.78) / 0.12);
-      music.volume = MAX_VOL - (MAX_VOL - MIN_VOL) * fadeT;
-    } else {
-      music.volume = MAX_VOL;
-    }
-  }, [progress]);
+  // (driven by RAF-read ref, no state needed)
+  
 
   // Start fading background in once particles begin forming the hero text
   useEffect(() => {
@@ -175,41 +175,49 @@ function App() {
   });
 
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    setProgress(latest);
+    progressRef.current = latest;
+    // Only trigger re-render when crossing a phase boundary
+    const newPhase = getPhase(latest);
+    setPhase(prev => prev !== newPhase ? newPhase : prev);
+    // Fade music volume without state
+    const music = bgMusicRef.current;
+    if (music && bgMusicStartedRef.current) {
+      const MIN_VOL = 0.012;
+      const MAX_VOL = 0.05;
+      if (latest >= 0.64) {
+        const fadeT = Math.min(1, (latest - 0.64) / 0.12);
+        music.volume = MAX_VOL - (MAX_VOL - MIN_VOL) * fadeT;
+      } else {
+        music.volume = MAX_VOL;
+      }
+    }
   });
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const url = URL.createObjectURL(file);
-      const currentIndex = Math.min(4, Math.floor(progress * 5));
+      const currentIndex = Math.min(4, Math.floor(progressRef.current * 5));
       const newImages = [...bgImages];
       newImages[currentIndex] = url;
       setBgImages(newImages);
     }
   };
 
-  let activeIndex = 0;
-  // 5 images aligned to particle phases:
-  // Image 1: 0–0.12 (Hero), Image 2: 0.12–0.38 (ARE YOU),
-  // Image 3: 0.38–0.56 (scatter), Image 4: 0.56–0.68 (READY? forming),
-  // Image 5: 0.68–0.78 (READY? held)
-  if (progress >= 0.68) activeIndex = 4;
-  else if (progress >= 0.56) activeIndex = 3;
-  else if (progress >= 0.38) activeIndex = 2;
-  else if (progress >= 0.12) activeIndex = 1;
+  // Derive visibility from discrete phase (avoids re-render on every scroll pixel)
+  const activeIndex = Math.min(phase, 4);
 
-  // Trophy appears after final scatter (progress 0.85–0.95)
-  // scrollProgress drives the camera pull-back inside TrophyPage
-  const trophyVisible = progress >= 0.85;
-  const trophyProgress = Math.max(0, Math.min(1, (progress - 0.85) / 0.10));
-  // Trophy fades OUT as deep space fades in (0.93 → 0.97)
-  const trophyOpacity = progress >= 0.93 ? Math.max(0, 1 - (progress - 0.93) / 0.04) : 1;
+  // Trophy appears after final scatter (phase >= 5)
+  const progress = progressRef.current;
+  const trophyVisible = phase >= 5;
+  const trophyProgress = Math.max(0, Math.min(1, (progress - 0.71) / 0.10));
+  // Trophy fades OUT as deep space fades in (0.79 → 0.83)
+  const trophyOpacity = phase >= 6 ? Math.max(0, 1 - (progress - 0.79) / 0.04) : 1;
 
-  // Deep space fades IN as trophy fades out (0.93 → 0.97), then fully visible
-  const deepSpaceVisible = progress >= 0.93;
-  const deepSpaceOpacity = Math.min(1, (progress - 0.93) / 0.04);
-  const deepSpaceProgress = Math.max(0, (progress - 0.97) / 0.03);
+  // Deep space fades IN as trophy fades out (0.79 → 0.83), then fully visible
+  const deepSpaceVisible = phase >= 6;
+  const deepSpaceOpacity = Math.min(1, (progress - 0.79) / 0.04);
+  const deepSpaceProgress = Math.max(0, (progress - 0.83) / 0.03);
 
   return (
     <main ref={containerRef} className="text-white min-h-[1000vh] selection:bg-white selection:text-black relative">
@@ -253,8 +261,8 @@ function App() {
       </div>
 
       {/* Fixed Background Experience — z-[10000] so particles render above intro during fade */}
-      <div className="fixed inset-0 z-[10000] pointer-events-none">
-        <UnifiedExperience progress={progress} startEntrance={particlesStarted} onHeroFormed={handleHeroFormed} onBoom={handleBoom} />
+      <div className="fixed inset-0 z-[10000] pointer-events-none" style={{ willChange: 'auto' }}>
+        <UnifiedExperience progress={progressRef.current} startEntrance={particlesStarted} onHeroFormed={handleHeroFormed} onBoom={handleBoom} />
       </div>
 
       {/* Hero Section Overlay (0 to 0.20) */}
@@ -304,7 +312,7 @@ function App() {
       {/* Helix Section Overlay (0.40 to 0.80) */}
       <section className="relative z-20 h-screen flex items-center justify-center pointer-events-none">
         <motion.div
-          style={{ opacity: useTransform(scrollYProgress, [0.5, 0.6, 0.75, 0.85], [0, 1, 1, 0]) }}
+          style={{ opacity: useTransform(scrollYProgress, [0.36, 0.46, 0.61, 0.71], [0, 1, 1, 0]) }}
           className="text-center"
         >
           <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-4 items-center">
@@ -320,7 +328,7 @@ function App() {
       {trophyVisible && (
         <div
           className="fixed inset-0 pointer-events-auto"
-          style={{ zIndex: 60, opacity: trophyOpacity, transition: 'opacity 0.4s ease' }}
+          style={{ zIndex: 60, opacity: trophyOpacity, transition: 'opacity 0.4s ease', willChange: 'opacity' }}
         >
           <TrophyPage scrollProgress={trophyProgress} />
         </div>

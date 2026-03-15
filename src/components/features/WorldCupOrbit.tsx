@@ -12,6 +12,7 @@ interface WorldCupData {
   year: number;
   caption: string;
   flags: HostFlag[];
+  videoId: string;
 }
 
 const WORLD_CUPS: WorldCupData[] = [
@@ -22,31 +23,37 @@ const WORLD_CUPS: WorldCupData[] = [
       { country: 'Japan', code: 'jp' },
       { country: 'South Korea', code: 'kr' },
     ],
+    videoId: 'k6xteH5ryHM',
   },
   {
     year: 2006,
     caption: "Germany's festival of football",
     flags: [{ country: 'Germany', code: 'de' }],
+    videoId: 'WXECIq9V-o4',
   },
   {
     year: 2010,
     caption: "The World Cup of vuvuzelas",
     flags: [{ country: 'South Africa', code: 'za' }],
+    videoId: 'QllPXed3_pc',
   },
   {
     year: 2014,
     caption: "Brazil's beautiful chaos",
     flags: [{ country: 'Brazil', code: 'br' }],
+    videoId: 'iMMkLTneOaY',
   },
   {
     year: 2018,
     caption: "Russia's tournament of surprises",
     flags: [{ country: 'Russia', code: 'ru' }],
+    videoId: 'eNxqyQ6TVwc',
   },
   {
     year: 2022,
     caption: "The desert World Cup",
     flags: [{ country: 'Qatar', code: 'qa' }],
+    videoId: 'nnR1gl1ItaQ',
   },
 ];
 
@@ -108,6 +115,30 @@ function getOrbitRadius(): number {
   return 155;
 }
 
+/* ─── VideoModal component ─── */
+interface VideoModalProps {
+  videoId: string;
+  onClose: () => void;
+}
+
+const VideoModal: React.FC<VideoModalProps> = ({ videoId, onClose }) => {
+  return (
+    <div className="wc-video-overlay" onClick={onClose}>
+      <div className="wc-video-container" onClick={(e) => e.stopPropagation()}>
+        <button className="wc-video-close" onClick={onClose}>
+          &times;
+        </button>
+        <iframe
+          className="wc-video-iframe"
+          src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0`}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+        ></iframe>
+      </div>
+    </div>
+  );
+};
+
 /* ─── WorldCupOrbit component ─── */
 interface WorldCupOrbitProps {
   cameraAngleRef?: MutableRefObject<number>;
@@ -119,6 +150,13 @@ export const WorldCupOrbit: React.FC<WorldCupOrbitProps> = ({ cameraAngleRef }) 
   const rafRef = useRef<number>(0);
   const frameRefs = useRef<(HTMLDivElement | null)[]>([]);
   const radiusRef = useRef(getOrbitRadius());
+
+  const [activeVideoId, setActiveVideoId] = useState<string | null>(null);
+  const isPausedRef = useRef(false);
+
+  useEffect(() => {
+    isPausedRef.current = activeVideoId !== null;
+  }, [activeVideoId]);
 
   // Track window resize for responsive radius
   useEffect(() => {
@@ -138,7 +176,10 @@ export const WorldCupOrbit: React.FC<WorldCupOrbitProps> = ({ cameraAngleRef }) 
     const animate = (now: number) => {
       const dt = (now - lastTime) / 1000;
       lastTime = now;
-      angleRef.current += SPEED * dt;
+      
+      if (!isPausedRef.current) {
+        angleRef.current += SPEED * dt;
+      }
 
       // Apply camera azimuthal offset so orbit rotates with the trophy
       const cameraOffset = cameraAngleRef ? cameraAngleRef.current : 0;
@@ -200,15 +241,24 @@ export const WorldCupOrbit: React.FC<WorldCupOrbitProps> = ({ cameraAngleRef }) 
   );
 
   return (
-    <div className="wc-orbit-container" ref={containerRef}>
-      <div className="wc-orbit-ring">
-        {WORLD_CUPS.map((wc, i) => (
-          <div key={wc.year} className="wc-flag-frame" ref={setRef(i)}>
-            <FlagFrame data={wc} />
-          </div>
-        ))}
+    <>
+      <div className="wc-orbit-container" ref={containerRef}>
+        <div className="wc-orbit-ring">
+          {WORLD_CUPS.map((wc, i) => (
+            <div 
+              key={wc.year} 
+              className="wc-flag-frame" 
+              ref={setRef(i)}
+              onClick={() => setActiveVideoId(wc.videoId)}
+              style={{ cursor: 'pointer' }}
+            >
+              <FlagFrame data={wc} />
+            </div>
+          ))}
+        </div>
       </div>
-    </div>
+      {activeVideoId && <VideoModal videoId={activeVideoId} onClose={() => setActiveVideoId(null)} />}
+    </>
   );
 };
 

@@ -21,7 +21,7 @@ function CameraAngleBridge({ angleRef }: { angleRef: React.MutableRefObject<numb
 }
 
 /* ─── Interactive particles that react to mouse ─── */
-const PARTICLE_COUNT = 600;
+const PARTICLE_COUNT = 200;
 
 function InteractiveParticles() {
   const meshRef = useRef<THREE.InstancedMesh>(null);
@@ -125,7 +125,7 @@ function InteractiveParticles() {
       </mesh>
 
       <instancedMesh ref={meshRef} args={[undefined, undefined, PARTICLE_COUNT]}>
-        <sphereGeometry args={[1, 8, 8]} />
+        <sphereGeometry args={[1, 4, 4]} />
         <meshBasicMaterial toneMapped={false} />
       </instancedMesh>
     </>
@@ -154,13 +154,6 @@ interface TrophyPageProps {
 export const TrophyPage: React.FC<TrophyPageProps> = ({ scrollProgress }) => {
   const controlsRef = useRef<any>(null);
   const cameraAngleRef = useRef(0);
-  const [opacity, setOpacity] = React.useState(0);
-
-  // Fade in slowly when mounted
-  React.useEffect(() => {
-    const t = setTimeout(() => setOpacity(1), 50); // tiny delay to let paint happen
-    return () => clearTimeout(t);
-  }, []);
 
   return (
     <div
@@ -168,8 +161,6 @@ export const TrophyPage: React.FC<TrophyPageProps> = ({ scrollProgress }) => {
         position: 'absolute',
         inset: 0,
         background: 'linear-gradient(180deg, #000 0%, #000 70%, #020010 90%, #020010 100%)',
-        opacity,
-        transition: 'opacity 2s ease',
       }}
     >
       <Canvas
