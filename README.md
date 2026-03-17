@@ -16,7 +16,6 @@ A continuous, single-page journey where scroll progress drives every 3D animatio
 Custom GPU-accelerated particles morph from scattered clouds into legible text formations — "ARE YOU READY?" — before scattering outward and seamlessly handing off to the 3D trophy room. The transition is designed to feel like one continuous motion.
 
 ### 🏅 3D Trophy Gallery
-![trophy](https://github.com/user-attachments/assets/db2d0bdd-0740-44ce-8999-377976d367d8)
 
 An interactive 3D trophy room with photorealistic lighting and materials. Orbiting flags of World Cup host nations float around the trophy — click any flag to watch highlight reels from that tournament.
 
