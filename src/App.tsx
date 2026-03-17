@@ -1,6 +1,6 @@
 import { UnifiedExperience, ColorRevealImage, TrophyPage, IntroGate, DeepSpacePage } from './components';
 import { motion, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
-import { Trophy, Play, ChevronDown, ImagePlus } from 'lucide-react';
+import { Trophy, Play, ChevronDown } from 'lucide-react';
 import React, { useRef, useState, useEffect } from 'react';
 import Lenis from 'lenis';
 
@@ -16,21 +16,21 @@ const BackgroundLayer = ({ src, index, activeIndex }: { key?: React.Key, src: st
   return (
     <motion.div
       initial={{ opacity: 0, y: index === 0 ? "0%" : "100%" }}
-      animate={{ 
+      animate={{
         y: index <= activeIndex ? "0%" : "100%",
         opacity: index <= activeIndex ? 1 : 0
       }}
-      transition={{ 
-        duration: index === 0 ? 2 : 1.4, 
-        ease: [0.22, 1, 0.36, 1] 
+      transition={{
+        duration: index === 0 ? 2 : 1.4,
+        ease: [0.22, 1, 0.36, 1]
       }}
       style={{
         zIndex: index,
       }}
       className="absolute inset-0 w-full h-full"
     >
-      <ColorRevealImage 
-        src={src} 
+      <ColorRevealImage
+        src={src}
         alt={`Background ${index + 1}`}
         className="w-full h-full"
         imgClassName="w-full h-full object-cover"
@@ -39,21 +39,18 @@ const BackgroundLayer = ({ src, index, activeIndex }: { key?: React.Key, src: st
   );
 };
 
-// Compute discrete phase from continuous progress to minimize re-renders
 function getPhase(p: number): number {
-  if (p >= 0.79) return 6; // deep space visible
-  if (p >= 0.71) return 5; // trophy visible
-  if (p >= 0.54) return 4;
-  if (p >= 0.42) return 3;
-  if (p >= 0.24) return 2;
-  if (p >= 0.05) return 1;
-  return 0;
+  if (p >= 0.88) return 6;  // Deep Space
+  if (p >= 0.72) return 5;  // Trophy
+  if (p >= 0.50) return 4;  // Image 5
+  if (p >= 0.38) return 3;  // Image 4
+  if (p >= 0.24) return 2;  // Image 3
+  if (p >= 0.10) return 1;  // Image 2
+  return 0;                  // Image 1 / Hero
 }
 
 function App() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const progressRef = useRef(0);
   const [phase, setPhase] = useState(0);
   const [bgImages, setBgImages] = useState(DEFAULT_IMAGES);
   const [showIntro, setShowIntro] = useState(true);
@@ -63,8 +60,8 @@ function App() {
   const bgMusicRef = useRef<HTMLAudioElement | null>(null);
   const bgMusicStartedRef = useRef(false);
   const [heroFormed, setHeroFormed] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
 
-  // ── Scroll to top on every page load / refresh ──
   useEffect(() => {
     window.scrollTo(0, 0);
     if ('scrollRestoration' in history) {
@@ -72,7 +69,6 @@ function App() {
     }
   }, []);
 
-  // ── Preload boom sound ──
   useEffect(() => {
     const audio = new Audio('/assets/Boom 1.mp3');
     audio.preload = 'auto';
@@ -80,12 +76,11 @@ function App() {
     boomRef.current = audio;
   }, []);
 
-  // ── Preload background music ──
   useEffect(() => {
     const music = new Audio('/assets/nuthin-but-a-g-thang-dr-dre-snoop-dogg_sNZM7bxL.mp3');
     music.preload = 'auto';
     music.loop = true;
-    music.volume = 0.05; // subtle background level
+    music.volume = 0.01;
     bgMusicRef.current = music;
     return () => {
       music.pause();
@@ -93,21 +88,17 @@ function App() {
     };
   }, []);
 
-  // ── Play boom 1 second before hero text fully locks (at 1500ms of 2500ms entrance) ──
   const handleBoom = React.useCallback(() => {
     if (boomRef.current) {
       boomRef.current.currentTime = 0;
-      boomRef.current.play().catch(() => {});
+      boomRef.current.play().catch(() => { });
     }
   }, []);
 
-  // ── Hero text fully formed — unlock background music trigger ──
   const handleHeroFormed = React.useCallback(() => {
     setHeroFormed(true);
   }, []);
 
-  // ── Start background music on first scroll after hero forms ──
-  // Uses wheel/touchstart so it fires inside a real user-gesture context (bypasses autoplay block)
   useEffect(() => {
     if (!heroFormed || bgMusicStartedRef.current) return;
 
@@ -116,7 +107,7 @@ function App() {
       bgMusicStartedRef.current = true;
       if (bgMusicRef.current) {
         bgMusicRef.current.currentTime = 0;
-        bgMusicRef.current.play().catch(() => {});
+        bgMusicRef.current.play().catch(() => { });
       }
       window.removeEventListener('wheel', startMusic);
       window.removeEventListener('touchstart', startMusic);
@@ -134,18 +125,11 @@ function App() {
     };
   }, [heroFormed]);
 
-  // ── Fade background music out as user approaches trophy section ──
-  // (driven by RAF-read ref, no state needed)
-  
-
-  // Start fading background in once particles begin forming the hero text
   useEffect(() => {
     if (!particlesStarted) return;
-    // Small delay so the text starts forming first, then bg rises in
     const t = setTimeout(() => setBgReady(true), 800);
     return () => clearTimeout(t);
   }, [particlesStarted]);
-
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -175,17 +159,16 @@ function App() {
   });
 
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    progressRef.current = latest;
-    // Only trigger re-render when crossing a phase boundary
+    setScrollProgress(latest);
     const newPhase = getPhase(latest);
     setPhase(prev => prev !== newPhase ? newPhase : prev);
-    // Fade music volume without state
+    
     const music = bgMusicRef.current;
     if (music && bgMusicStartedRef.current) {
       const MIN_VOL = 0.012;
       const MAX_VOL = 0.05;
-      if (latest >= 0.64) {
-        const fadeT = Math.min(1, (latest - 0.64) / 0.12);
+      if (latest >= 0.70) {
+        const fadeT = Math.min(1, (latest - 0.70) / 0.10);
         music.volume = MAX_VOL - (MAX_VOL - MIN_VOL) * fadeT;
       } else {
         music.volume = MAX_VOL;
@@ -193,82 +176,105 @@ function App() {
     }
   });
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      const currentIndex = Math.min(4, Math.floor(progressRef.current * 5));
-      const newImages = [...bgImages];
-      newImages[currentIndex] = url;
-      setBgImages(newImages);
-    }
-  };
-
-  // Derive visibility from discrete phase (avoids re-render on every scroll pixel)
   const activeIndex = Math.min(phase, 4);
+  const progress = scrollProgress;
 
-  // Trophy appears after final scatter (phase >= 5)
-  const progress = progressRef.current;
-  const trophyVisible = phase >= 5;
-  const trophyProgress = Math.max(0, Math.min(1, (progress - 0.71) / 0.10));
-  // Trophy fades OUT as deep space fades in (0.79 → 0.83)
-  const trophyOpacity = phase >= 6 ? Math.max(0, 1 - (progress - 0.79) / 0.04) : 1;
+  // Particles fade - READY text shows at 0.54-0.64, fade after that
+  const bgFadeStart = 0.64;
+  const bgFadeEnd = 0.72;
+  let coverLayerOpacity = 1;
+  if (progress >= bgFadeEnd) {
+    coverLayerOpacity = 0;
+  } else if (progress >= bgFadeStart) {
+    coverLayerOpacity = 1 - (progress - bgFadeStart) / (bgFadeEnd - bgFadeStart);
+  }
 
-  // Deep space fades IN as trophy fades out (0.79 → 0.83), then fully visible
-  const deepSpaceVisible = phase >= 6;
-  const deepSpaceOpacity = Math.min(1, (progress - 0.79) / 0.04);
-  const deepSpaceProgress = Math.max(0, (progress - 0.83) / 0.03);
+  // Trophy section - extended to last longer (0.72 to 0.92 = 20% of scroll)
+  const trophyPhaseStart = 0.72;
+  const trophyFadeInEnd = 0.76;
+  const trophyFadeOutStart = 0.88;
+  const trophyPhaseEnd = 0.92;
+
+  const showTrophy = progress >= trophyPhaseStart && progress < trophyPhaseEnd;
+
+  let trophyOpacity = 0;
+  if (showTrophy) {
+    if (progress < trophyFadeInEnd) {
+      trophyOpacity = Math.max(0, Math.min(1, (progress - trophyPhaseStart) / (trophyFadeInEnd - trophyPhaseStart)));
+    } else if (progress > trophyFadeOutStart) {
+      trophyOpacity = Math.max(0, Math.min(1, 1 - (progress - trophyFadeOutStart) / (trophyPhaseEnd - trophyFadeOutStart)));
+    } else {
+      trophyOpacity = 1;
+    }
+  }
+
+  // Deep space - starts at 0.90
+  const deepSpacePhaseStart = 0.90;
+  const deepSpaceFadeInEnd = 0.94;
+
+  const showDeepSpace = progress >= deepSpacePhaseStart;
+
+  let deepSpaceOpacity = 0;
+  if (showDeepSpace) {
+    if (progress < deepSpaceFadeInEnd) {
+      deepSpaceOpacity = Math.max(0, Math.min(1, (progress - deepSpacePhaseStart) / (deepSpaceFadeInEnd - deepSpacePhaseStart)));
+    } else {
+      deepSpaceOpacity = 1;
+    }
+  }
+
+  const relativeTrophyProgress = showTrophy
+    ? Math.max(0, Math.min(1, (progress - trophyPhaseStart) / (trophyPhaseEnd - trophyPhaseStart)))
+    : 0;
+
+  const deepSpaceProgressValue = showDeepSpace
+    ? Math.max(0, Math.min(1, (progress - deepSpacePhaseStart) / (1.0 - deepSpacePhaseStart)))
+    : 0;
 
   return (
-    <main ref={containerRef} className="text-white min-h-[1000vh] selection:bg-white selection:text-black relative">
+    <main ref={containerRef} className="text-white min-h-[800vh] selection:bg-white selection:text-black relative">
+
       {showIntro && (
         <IntroGate
           onBlast={() => setParticlesStarted(true)}
           onComplete={() => setShowIntro(false)}
         />
       )}
-      {/* Trophy has been moved to the end */}
 
       {/* Scroll spacer */}
-      <section className="relative z-20 h-[300vh] pointer-events-none" />
+      <section className="relative z-20 h-[400vh] pointer-events-none" />
 
-      {/* ═══ ORIGINAL CONTENT BELOW (unchanged) ═══ */}
-
-      {/* Background Images — fades in as hero text forms */}
-      <div className="fixed inset-0 z-0 overflow-hidden bg-black" style={{ opacity: bgReady ? 1 : 0, transition: 'opacity 2.5s ease' }}>
+      {/* Background images layer */}
+      <div 
+        className="fixed inset-0 z-0 overflow-hidden bg-black" 
+        style={{ 
+          opacity: bgReady ? coverLayerOpacity : 0, 
+          transition: coverLayerOpacity < 1 ? 'none' : 'opacity 2.5s ease' 
+        }}
+      >
         {bgImages.map((src, i) => (
           <BackgroundLayer key={i} src={src} index={i} activeIndex={activeIndex} />
         ))}
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90 z-10 pointer-events-none" />
       </div>
 
-      {/* Image Upload Button */}
-      <div className="fixed top-8 right-8 z-50">
-        <input
-          type="file"
-          accept="image/*"
-          className="hidden"
-          ref={fileInputRef}
-          onChange={handleImageUpload}
+      {/* Particles */}
+      <div 
+        className="fixed inset-0 z-[10000] pointer-events-none" 
+        style={{ willChange: 'auto', opacity: coverLayerOpacity }}
+      >
+        <UnifiedExperience 
+          progress={progress} 
+          startEntrance={particlesStarted} 
+          onHeroFormed={handleHeroFormed} 
+          onBoom={handleBoom} 
         />
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-sm bg-black/20 hover:bg-white/10 transition-colors group"
-          title="Upload Custom Background"
-        >
-          <ImagePlus className="w-5 h-5 text-white/80 group-hover:text-white transition-colors" />
-        </button>
       </div>
 
-      {/* Fixed Background Experience — z-[10000] so particles render above intro during fade */}
-      <div className="fixed inset-0 z-[10000] pointer-events-none" style={{ willChange: 'auto' }}>
-        <UnifiedExperience progress={progressRef.current} startEntrance={particlesStarted} onHeroFormed={handleHeroFormed} onBoom={handleBoom} />
-      </div>
-
-      {/* Hero Section Overlay (0 to 0.20) */}
+      {/* Hero UI */}
       <section className="relative z-20 h-screen flex flex-col items-center justify-center overflow-hidden pointer-events-none">
         <motion.div
-          style={{ opacity: useTransform(scrollYProgress, [0, 0.1], [1, 0]) }}
+          style={{ opacity: useTransform(scrollYProgress, [0, 0.05], [1, 0]) }}
           className="flex flex-col items-center"
         >
           <div className="absolute top-8 left-8 z-10 flex items-center gap-4 pointer-events-auto">
@@ -306,51 +312,32 @@ function App() {
         </motion.div>
       </section>
 
-      {/* Spacer for Transition */}
+      {/* Additional scroll space */}
       <section className="relative z-20 h-[200vh] pointer-events-none" />
 
-      {/* Helix Section Overlay (0.40 to 0.80) */}
-      <section className="relative z-20 h-screen flex items-center justify-center pointer-events-none">
-        <motion.div
-          style={{ opacity: useTransform(scrollYProgress, [0.36, 0.46, 0.61, 0.71], [0, 1, 1, 0]) }}
-          className="text-center"
-        >
-          <div className="absolute bottom-12 left-1/2 -translate-x-1/2 flex gap-4 items-center">
-            <div className="w-12 h-[1px] bg-white/10" />
-            <span className="text-[10px] uppercase tracking-[0.5em] text-white/20">PHASE 02</span>
-            <div className="w-12 h-[1px] bg-white/10" />
-          </div>
-        </motion.div>
-      </section>
+      {/* Trophy Layer */}
+      <div
+        className="fixed inset-0 w-full h-full z-[10001]"
+        style={{
+          opacity: trophyOpacity,
+          pointerEvents: trophyOpacity > 0.1 ? 'auto' : 'none',
+          visibility: trophyOpacity > 0 ? 'visible' : 'hidden'
+        }}
+      >
+        <TrophyPage scrollProgress={relativeTrophyProgress} />
+      </div>
 
-      {/* ═══ TROPHY SECTION — at the very end after final scatter ═══ */}
-      <section className="relative z-20 h-[200vh] pointer-events-none" />
-      {trophyVisible && (
-        <div
-          className="fixed inset-0 pointer-events-auto"
-          style={{ zIndex: 60, opacity: trophyOpacity, transition: 'opacity 0.4s ease', willChange: 'opacity' }}
-        >
-          <TrophyPage scrollProgress={trophyProgress} />
-        </div>
-      )}
-
-      {/* ═══ DEEP SPACE — fades in on top of trophy as user scrolls past ═══ */}
-      {deepSpaceVisible && (
-        <div
-          className="fixed inset-0 pointer-events-auto"
-          style={{
-            zIndex: 65,
-            opacity: deepSpaceOpacity,
-            transition: 'opacity 0.3s ease',
-          }}
-        >
-          <DeepSpacePage scrollProgress={deepSpaceProgress} />
-        </div>
-      )}
-
-      {/* Extra scroll runway for deep space exploration */}
-      <section className="relative z-20 h-[200vh] pointer-events-none" />
-
+      {/* Deep Space Layer */}
+      <div
+        className="fixed inset-0 w-full h-full z-[10002]"
+        style={{
+          opacity: deepSpaceOpacity,
+          pointerEvents: deepSpaceOpacity > 0.1 ? 'auto' : 'none',
+          visibility: deepSpaceOpacity > 0 ? 'visible' : 'hidden'
+        }}
+      >
+        <DeepSpacePage scrollProgress={deepSpaceProgressValue} />
+      </div>
 
     </main>
   );

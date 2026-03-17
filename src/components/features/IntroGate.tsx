@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 interface IntroGateProps {
-  onBlast: () => void;   // called when the particle blast starts → show trophy
-  onComplete: () => void; // called when fully faded out → unmount intro
+  onBlast: () => void;
+  onComplete: () => void;
 }
 
 export const IntroGate: React.FC<IntroGateProps> = ({ onBlast, onComplete }) => {
@@ -12,13 +12,10 @@ export const IntroGate: React.FC<IntroGateProps> = ({ onBlast, onComplete }) => 
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
       if (e.data === 'intro:blast') {
-        // Particle blast just started — tell App to show trophy immediately
         onBlast();
-        // Start fading the intro overlay out in sync with the blast
         setExiting(true);
       }
       if (e.data === 'intro:done') {
-        // Fully done — unmount
         setExiting(true);
         setTimeout(onComplete, 800);
       }

@@ -3,12 +3,6 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useGLTF, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 
-/* ═══════════════════════════════════════════════════════════════
-   GLB TROPHY MODEL
-   Loads trophy.glb, applies gold material, auto-fits to viewport.
-   ═══════════════════════════════════════════════════════════════ */
-
-// Material overrides applied to the GLB's own materials
 const MAT_OVERRIDES = {
   metalness: 1.0,
   roughness: 0.2,
@@ -19,7 +13,6 @@ interface TrophyModelProps {
   scrollProgress: number;
 }
 
-// Shared ref so CameraController can read the computed distance
 export const trophyFitData = { cameraZ: 5 };
 
 export function TrophyModel({ scrollProgress }: TrophyModelProps) {
@@ -31,20 +24,16 @@ export function TrophyModel({ scrollProgress }: TrophyModelProps) {
   const smoothY = useRef(0);
 
   const fitResult = useMemo(() => {
-    // Compute bounding box on the raw scene
     const box = new THREE.Box3().setFromObject(scene);
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
 
-    // Scale so the largest dimension = 3 world units
     const desiredSize = 3;
     const scale = desiredSize / maxDim;
 
-    // Center offset in MODEL space (before scaling)
     const offset = center.negate();
 
-    // Camera distance to fit with padding
     const fov = 45;
     const fovRad = (fov * Math.PI) / 180;
     const dist = (desiredSize / 2) / Math.tan(fovRad / 2) * 1.5;
@@ -52,7 +41,6 @@ export function TrophyModel({ scrollProgress }: TrophyModelProps) {
     return { scale, offset, dist };
   }, [scene]);
 
-  // Boost existing materials for realistic look (keep GLB's own textures/colors)
   useEffect(() => {
     scene.traverse((child) => {
       if ((child as THREE.Mesh).isMesh) {
@@ -100,12 +88,9 @@ export function TrophyModel({ scrollProgress }: TrophyModelProps) {
   );
 }
 
-/* ───── Scene lighting & environment ───── */
-/* ─── RectAreaLight helper (must be inside Canvas) ─── */
 function FrontRectLight() {
   const lightRef = useRef<THREE.RectAreaLight>(null);
   useEffect(() => {
-    // RectAreaLightUniformsLib is auto-included by drei/three
   }, []);
   return (
     <rectAreaLight
@@ -122,10 +107,8 @@ function FrontRectLight() {
 export function TrophyScene({ scrollProgress }: { scrollProgress: number }) {
   return (
     <>
-      {/* Soft ambient fill */}
       <ambientLight intensity={0.4} color="#fff8ee" />
 
-      {/* Warm spotlight from above */}
       <spotLight
         position={[0, 12, 4]}
         angle={0.4}
@@ -135,12 +118,10 @@ export function TrophyScene({ scrollProgress }: { scrollProgress: number }) {
         castShadow
       />
 
-      {/* Front rect area light for broad reflections */}
       <FrontRectLight />
 
       <TrophyModel scrollProgress={scrollProgress} />
 
-      {/* HDRI environment for realistic gold reflections */}
       <Environment
         preset="sunset"
         environmentIntensity={1.5}

@@ -28,7 +28,6 @@ export const ColorRevealImage: React.FC<ColorRevealImageProps> = ({
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
 
-      // Update cursor dot position via ref (no re-render)
       if (cursorRef.current) {
         cursorRef.current.style.transform = `translate(${x - 3}px, ${y - 3}px)`;
       }
@@ -61,7 +60,6 @@ export const ColorRevealImage: React.FC<ColorRevealImageProps> = ({
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Bottom Layer: Full Color */}
       <img
         src={src}
         alt={alt}
@@ -69,7 +67,6 @@ export const ColorRevealImage: React.FC<ColorRevealImageProps> = ({
         referrerPolicy="no-referrer"
       />
 
-      {/* Top Layer: Grayscale with Mask */}
       <img
         ref={grayscaleRef}
         src={src}
@@ -82,7 +79,6 @@ export const ColorRevealImage: React.FC<ColorRevealImageProps> = ({
         referrerPolicy="no-referrer"
       />
 
-      {/* Custom Cursor */}
       {isHovered && (
         <>
           <div

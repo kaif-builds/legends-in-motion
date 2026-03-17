@@ -6,21 +6,18 @@ import * as THREE from 'three';
 import { TrophyScene, trophyFitData } from './Trophy';
 import { WorldCupOrbit } from './WorldCupOrbit';
 
-/* ─── Bridge: reads camera azimuthal angle and writes to shared ref ─── */
 function CameraAngleBridge({ angleRef }: { angleRef: React.MutableRefObject<number> }) {
   const { camera } = useThree();
   const spherical = useMemo(() => new THREE.Spherical(), []);
 
   useFrame(() => {
     spherical.setFromVector3(camera.position);
-    // theta is the azimuthal angle (horizontal rotation)
     angleRef.current = spherical.theta;
   });
 
   return null;
 }
 
-/* ─── Interactive particles that react to mouse ─── */
 const PARTICLE_COUNT = 200;
 
 function InteractiveParticles() {
@@ -118,10 +115,9 @@ function InteractiveParticles() {
       <mesh
         position={[0, 0, -1]}
         onPointerMove={handlePointerMove as any}
-        visible={false}
       >
         <planeGeometry args={[viewport.width * 2, viewport.height * 2]} />
-        <meshBasicMaterial />
+        <meshBasicMaterial transparent opacity={0} />
       </mesh>
 
       <instancedMesh ref={meshRef} args={[undefined, undefined, PARTICLE_COUNT]}>
@@ -132,7 +128,6 @@ function InteractiveParticles() {
   );
 }
 
-/* ─── Scroll-linked orbit target ─── */
 function ScrollTarget({ scrollProgress, controlsRef }: { scrollProgress: number; controlsRef: React.RefObject<any> }) {
   const targetY = useRef(0);
 
@@ -146,7 +141,6 @@ function ScrollTarget({ scrollProgress, controlsRef }: { scrollProgress: number;
   return null;
 }
 
-/* ─── Main TrophyPage component ─── */
 interface TrophyPageProps {
   scrollProgress: number;
 }
@@ -165,7 +159,7 @@ export const TrophyPage: React.FC<TrophyPageProps> = ({ scrollProgress }) => {
     >
       <Canvas
         camera={{ position: [0, 0, 15], fov: 45, near: 0.1, far: 500 }}
-        gl={{ antialias: true, alpha: false, powerPreference: 'high-performance', toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 1.2 }}
+        gl={{ antialias: true, alpha: false, powerPreference: 'high-performance', toneMapping: THREE.ACESFilmicToneMapping, toneMappingExposure: 2.5 }}
         dpr={[1, 2]}
         style={{ background: '#000' }}
       >
@@ -176,29 +170,26 @@ export const TrophyPage: React.FC<TrophyPageProps> = ({ scrollProgress }) => {
             ref={controlsRef}
             enableDamping
             dampingFactor={0.05}
-            enableZoom
+            enableZoom={false}
             enablePan={false}
             makeDefault
           />
           <TrophyScene scrollProgress={scrollProgress} />
           <InteractiveParticles />
 
-          {/* Rich golden bloom */}
           <EffectComposer>
             <Bloom
-              intensity={1.8}
-              luminanceThreshold={0.2}
-              luminanceSmoothing={0.9}
+              intensity={2.5}
+              luminanceThreshold={0.15}
+              luminanceSmoothing={0.8}
               mipmapBlur
             />
           </EffectComposer>
         </Suspense>
       </Canvas>
 
-      {/* World Cup host nation flags orbiting the trophy */}
       <WorldCupOrbit cameraAngleRef={cameraAngleRef} />
 
-      {/* Credit line */}
       <div
         style={{
           position: 'absolute',

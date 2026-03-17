@@ -1,14 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import './SpaceZoom.css';
 
-/*
-  SpaceZoom — overlay-only component.
-  Renders bloom, video, close button. NO scene, NO canvas, NO particles.
-  The actual zoom (scaling the existing scene) is driven by DeepSpacePage.
-  This component receives zoomProgress from the parent and maps it
-  to overlay opacity / shake / video fade.
-*/
-
 export type ZoomPhase = 'in' | 'hold' | 'out' | 'done';
 
 export interface SpaceZoomProps {
@@ -37,7 +29,6 @@ export const SpaceZoom: React.FC<SpaceZoomProps> = ({
   const closeRef = useRef<HTMLButtonElement>(null);
   const videoStarted = useRef(false);
 
-  // Preload video
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.preload = 'auto';
@@ -45,18 +36,15 @@ export const SpaceZoom: React.FC<SpaceZoomProps> = ({
     }
   }, []);
 
-  // Pause video when reversing
   useEffect(() => {
     if (phase === 'out' && videoRef.current) {
       videoRef.current.pause();
     }
   }, [phase]);
 
-  // Drive overlay visuals from zoomProgress (0 to 1)
   useEffect(() => {
     const t = zoomProgress;
 
-    // Bloom: last 20%
     if (bloomRef.current) {
       const bT = Math.max(0, (t - 0.80) / 0.20);
       bloomRef.current.style.opacity = String(bT * 0.92);
@@ -69,7 +57,6 @@ export const SpaceZoom: React.FC<SpaceZoomProps> = ({
       }
     }
 
-    // Camera shake
     if (shakerRef.current) {
       if (phase === 'in' || phase === 'out') {
         const shakeAmt = t < 0.3 ? 0 : Math.pow((t - 0.3) / 0.7, 2) * 6;
@@ -82,7 +69,6 @@ export const SpaceZoom: React.FC<SpaceZoomProps> = ({
       }
     }
 
-    // Video: fades in at 75% to 87.5%
     if (videoWrapRef.current) {
       const vT = Math.max(0, (t - 0.75) / 0.125);
       const vOpacity = Math.min(1, vT);
@@ -94,11 +80,10 @@ export const SpaceZoom: React.FC<SpaceZoomProps> = ({
       }
       if (vOpacity > 0.1 && videoRef.current && videoRef.current.paused && !videoStarted.current) {
         videoStarted.current = true;
-        videoRef.current.play().catch(function() {});
+        videoRef.current.play().catch(function () { });
       }
     }
 
-    // Close button: 87.5% to 100%
     if (closeRef.current) {
       const btnT = Math.max(0, (t - 0.875) / 0.125);
       const btnOpacity = Math.min(1, btnT);
@@ -107,7 +92,6 @@ export const SpaceZoom: React.FC<SpaceZoomProps> = ({
     }
   }, [zoomProgress, phase, originX, originY, starColor]);
 
-  // Reset when done
   useEffect(() => {
     if (phase === 'done') {
       videoStarted.current = false;

@@ -33,6 +33,7 @@
   flex-direction: column;
   align-items: center;
   pointer-events: none;
+  touch-action: none;
   /* transform applied by RAF — no CSS animation here */
   will-change: transform;
 }
@@ -49,72 +50,72 @@
 }
 .hero-orb__core:hover { transform: scale(1.35) !important; }
 
-/* inner bright dot — colour & shadow set by JS */
-.hero-orb__dot {
-  position: absolute;
-  inset: 15%;
-  border-radius: 50%;
-  background: #fff8e8;
-}
-
-/* pulsing glow halo — inset & colour set by JS */
-.hero-orb__glow {
-  position: absolute;
-  border-radius: 50%;
-  animation: orbPulse 3s ease-in-out infinite;
-  pointer-events: none;
-}
-
-/* stagger pulse phase per sibling */
-.hero-orb:nth-child(2) .hero-orb__glow { animation-delay: -0.8s; }
-.hero-orb:nth-child(3) .hero-orb__glow { animation-delay: -1.6s; }
-.hero-orb:nth-child(4) .hero-orb__glow { animation-delay: -0.4s; }
-.hero-orb:nth-child(5) .hero-orb__glow { animation-delay: -2.1s; }
-.hero-orb:nth-child(6) .hero-orb__glow { animation-delay: -1.2s; }
-.hero-orb:nth-child(7) .hero-orb__glow { animation-delay: -2.6s; }
-.hero-orb:nth-child(8) .hero-orb__glow { animation-delay: -0.6s; }
-
-@keyframes orbPulse {
-  0%, 100% { transform: scale(1.0); opacity: 0.45; }
-  50%      { transform: scale(1.35); opacity: 0.85; }
-}
-
-/* ── Connector line + label — opacity & line height set by RAF ── */
+/* ── Connector container (vertical line + label below) ── */
 .hero-orb__connector {
+  position: absolute;
+  top: 100%; /* starts right below orb center */
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   pointer-events: none;
-  /* opacity driven by RAF; transition smooths both scroll-in and zoom-hide */
-  transition: opacity 0.35s ease;
+  /* fade/slide handled by RAF */
+  will-change: opacity;
 }
 
-.hero-orb__connector[style*="opacity: 1"],
-.hero-orb__connector[style*="opacity:1"] {
-  pointer-events: auto;
-}
-
+/* ── Vertical line growing down ── */
 .hero-orb__line {
   width: 1px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 210, 100, 0.65) 0%,
-    rgba(255, 210, 100, 0.04) 100%
-  );
-  /* height driven by RAF */
-  transition: height 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+  background: rgba(255, 255, 255, 0.3);
+  margin-top: 8px; /* gap from orb */
+  will-change: height;
 }
 
+/* ── Text label "Click to Explore" ── */
 .hero-orb__label {
-  margin-top: 8px;
+  margin-top: 6px;
   font-family: 'Inter', sans-serif;
-  font-size: 9px;
-  letter-spacing: 0.20em;
+  font-size: 10px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: rgba(255, 230, 160, 0.78);
+  color: rgba(255, 255, 255, 0.6);
   white-space: nowrap;
+  pointer-events: auto; /* label also acts as click target */
   cursor: pointer;
-  pointer-events: auto;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.8);
   transition: color 0.3s ease;
 }
 .hero-orb__label:hover { color: #fff; }
+
+/* ── Mobile Optimizations ── */
+@media (max-width: 768px) {
+  /* Hide lengthy text labels on mobile to avoid clutter */
+  .hero-orb__label span {
+    display: none;
+  }
+  .hero-orb__label::after {
+    content: "Tap";
+  }
+  
+  /* Make touch targets larger */
+  .hero-orb__core {
+    transform: scale(1.4); /* Make stars physically larger */
+    padding: 10px;        /* Invisible hit area padding */ 
+    margin: -10px;
+  }
+  
+  /* Reduce connector line length */
+  .hero-orb__line { 
+    margin-top: 4px;
+    height: 30px !important; /* Force shorter lines */
+  }
+
+  /* Adjust positioning to prevent edge cutoff */
+  .hero-orb[style*="left: 9"], .hero-orb[style*="left: 8"] {
+    transform: translateX(-20px);
+  }
+  .hero-orb[style*="left: 0"], .hero-orb[style*="left: 1"] {
+    transform: translateX(20px);
+  }
+}

@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { MutableRefObject } from 'react';
 import './WorldCupOrbit.css';
 
-/* ─── World Cup data ─── */
 interface HostFlag {
   country: string;
   code: string;
@@ -59,7 +58,6 @@ const WORLD_CUPS: WorldCupData[] = [
 
 const FLAG_CDN = 'https://flagcdn.com/w160';
 
-/* ─── FlagFrame component ─── */
 interface FlagFrameProps {
   data: WorldCupData;
 }
@@ -79,7 +77,6 @@ const FlagFrame: React.FC<FlagFrameProps> = ({ data }) => {
   return (
     <>
       <div className="wc-flag-inner">
-        {/* Flag image(s) */}
         <div className="wc-flag-img-wrapper">
           {data.flags.map((flag, i) => (
             <img
@@ -97,7 +94,6 @@ const FlagFrame: React.FC<FlagFrameProps> = ({ data }) => {
         </div>
       </div>
 
-      {/* Tooltip - outside wc-flag-inner to avoid overflow:hidden clipping */}
       <div className="wc-tooltip">
         <div className="wc-tooltip-year">{data.year}</div>
         <div className="wc-tooltip-caption">{data.caption}</div>
@@ -106,16 +102,14 @@ const FlagFrame: React.FC<FlagFrameProps> = ({ data }) => {
   );
 };
 
-/* ─── Orbit radius helper ─── */
 function getOrbitRadius(): number {
   const vmin = Math.min(window.innerWidth, window.innerHeight);
-  // Responsive: larger screens get a bigger orbit
+
   if (vmin > 900) return 260;
   if (vmin > 600) return 200;
   return 155;
 }
 
-/* ─── VideoModal component ─── */
 interface VideoModalProps {
   videoId: string;
   onClose: () => void;
@@ -139,7 +133,6 @@ const VideoModal: React.FC<VideoModalProps> = ({ videoId, onClose }) => {
   );
 };
 
-/* ─── WorldCupOrbit component ─── */
 interface WorldCupOrbitProps {
   cameraAngleRef?: MutableRefObject<number>;
 }
@@ -158,7 +151,6 @@ export const WorldCupOrbit: React.FC<WorldCupOrbitProps> = ({ cameraAngleRef }) 
     isPausedRef.current = activeVideoId !== null;
   }, [activeVideoId]);
 
-  // Track window resize for responsive radius
   useEffect(() => {
     const handleResize = () => {
       radiusRef.current = getOrbitRadius();
@@ -167,21 +159,19 @@ export const WorldCupOrbit: React.FC<WorldCupOrbitProps> = ({ cameraAngleRef }) 
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Animation loop
   useEffect(() => {
     const COUNT = WORLD_CUPS.length;
-    const SPEED = 0.15; // radians per second — slow & smooth
+    const SPEED = 0.15;
     let lastTime = performance.now();
 
     const animate = (now: number) => {
       const dt = (now - lastTime) / 1000;
       lastTime = now;
-      
+
       if (!isPausedRef.current) {
         angleRef.current += SPEED * dt;
       }
 
-      // Apply camera azimuthal offset so orbit rotates with the trophy
       const cameraOffset = cameraAngleRef ? cameraAngleRef.current : 0;
 
       const radius = radiusRef.current;
@@ -192,28 +182,22 @@ export const WorldCupOrbit: React.FC<WorldCupOrbitProps> = ({ cameraAngleRef }) 
         if (!el) continue;
 
         const theta = angleRef.current + i * angleStep + cameraOffset;
-        // Subtle vertical float
+
         const floatY = Math.sin(now * 0.001 + i * 1.2) * 4;
 
         const x = Math.cos(theta) * radius;
-        const y = Math.sin(theta) * radius * 0.38 + floatY; // elliptical for perspective
-        // Depth-based scale for pseudo-3D feel
-        const depth = Math.sin(theta); // -1 (back) to 1 (front)
-        const scale = 0.75 + 0.25 * ((depth + 1) / 2); // 0.75 → 1.0
+        const y = Math.sin(theta) * radius * 0.38 + floatY;
 
-        // Front/back visibility: flags behind the trophy fade out
-        // depth ranges from -1 (back) to 1 (front)
-        // Smooth transition zone around the sides (-0.15 to 0.15)
+        const depth = Math.sin(theta);
+        const scale = 0.75 + 0.25 * ((depth + 1) / 2);
+
         let opacity: number;
         if (depth > 0.15) {
-          // Front half — fully visible with depth-based variation
           opacity = 0.55 + 0.45 * ((depth + 1) / 2);
         } else if (depth > -0.15) {
-          // Transition zone — smooth fade
-          const t = (depth + 0.15) / 0.3; // 0 to 1
+          const t = (depth + 0.15) / 0.3;
           opacity = t * (0.55 + 0.45 * ((depth + 1) / 2));
         } else {
-          // Back half — hidden
           opacity = 0;
         }
 
@@ -245,9 +229,9 @@ export const WorldCupOrbit: React.FC<WorldCupOrbitProps> = ({ cameraAngleRef }) 
       <div className="wc-orbit-container" ref={containerRef}>
         <div className="wc-orbit-ring">
           {WORLD_CUPS.map((wc, i) => (
-            <div 
-              key={wc.year} 
-              className="wc-flag-frame" 
+            <div
+              key={wc.year}
+              className="wc-flag-frame"
               ref={setRef(i)}
               onClick={() => setActiveVideoId(wc.videoId)}
               style={{ cursor: 'pointer' }}
