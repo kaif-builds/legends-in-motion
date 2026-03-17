@@ -152,7 +152,7 @@ export const UnifiedExperience: React.FC<UnifiedExperienceProps> = ({
       tempCtx.textAlign = 'center';
       tempCtx.textBaseline = 'middle';
 
-      const heroFontSize = Math.min(w * 0.1, 120);
+      const heroFontSize = w < 768 ? Math.min(w * 0.08, 48) : Math.min(w * 0.1, 120);
       const heroLines = ['GREATEST MOMENTS', 'IN', 'SPORTS HISTORY'];
       heroLines.forEach((line, i) => {
         const isIn = line === 'IN';
@@ -160,10 +160,11 @@ export const UnifiedExperience: React.FC<UnifiedExperienceProps> = ({
         tempCtx.font = isIn
           ? `italic 600 ${size}px "Playfair Display", Georgia, serif`
           : `900 ${size}px "Inter", "Arial Black", sans-serif`;
+        const lineSpacing = w < 768 ? 1.1 : 1.3;
         tempCtx.fillText(
           line,
           w / 2,
-          h / 2 - heroFontSize * 1.3 + i * heroFontSize * 1.3
+          h / 2 - heroFontSize * lineSpacing + i * heroFontSize * lineSpacing
         );
       });
 
@@ -189,7 +190,7 @@ export const UnifiedExperience: React.FC<UnifiedExperienceProps> = ({
       }
 
       tempCtx.clearRect(0, 0, w, h);
-      const areYouFontSize = Math.min(w * 0.12, 140);
+      const areYouFontSize = w < 768 ? Math.min(w * 0.10, 60) : Math.min(w * 0.12, 140);
       tempCtx.font = `900 ${areYouFontSize}px "Inter", "Arial Black", sans-serif`;
       tempCtx.fillText('ARE YOU', w / 2, h / 2);
 
@@ -211,7 +212,7 @@ export const UnifiedExperience: React.FC<UnifiedExperienceProps> = ({
       }
 
       tempCtx.clearRect(0, 0, w, h);
-      const readyFontSize = Math.min(w * 0.12, 140);
+      const readyFontSize = w < 768 ? Math.min(w * 0.10, 60) : Math.min(w * 0.12, 140);
       tempCtx.font = `900 ${readyFontSize}px "Inter", "Arial Black", sans-serif`;
       tempCtx.fillText('READY?', w / 2, h / 2);
 

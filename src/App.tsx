@@ -46,7 +46,7 @@ function getPhase(p: number): number {
   if (p >= 0.38) return 3;  // Image 4
   if (p >= 0.24) return 2;  // Image 3
   if (p >= 0.10) return 1;  // Image 2
-  return 0;                  // Image 1 / Hero
+  return 0;                  // Image 1
 }
 
 function App() {
@@ -80,7 +80,7 @@ function App() {
     const music = new Audio('/assets/nuthin-but-a-g-thang-dr-dre-snoop-dogg_sNZM7bxL.mp3');
     music.preload = 'auto';
     music.loop = true;
-    music.volume = 0.01;
+    music.volume = 0.04;
     bgMusicRef.current = music;
     return () => {
       music.pause();
@@ -189,7 +189,7 @@ function App() {
     coverLayerOpacity = 1 - (progress - bgFadeStart) / (bgFadeEnd - bgFadeStart);
   }
 
-  // Trophy section - extended to last longer (0.72 to 0.92 = 20% of scroll)
+
   const trophyPhaseStart = 0.72;
   const trophyFadeInEnd = 0.76;
   const trophyFadeOutStart = 0.88;
@@ -208,7 +208,7 @@ function App() {
     }
   }
 
-  // Deep space - starts at 0.90
+ 
   const deepSpacePhaseStart = 0.90;
   const deepSpaceFadeInEnd = 0.94;
 
@@ -241,10 +241,9 @@ function App() {
         />
       )}
 
-      {/* Scroll spacer */}
+   
       <section className="relative z-20 h-[400vh] pointer-events-none" />
 
-      {/* Background images layer */}
       <div 
         className="fixed inset-0 z-0 overflow-hidden bg-black" 
         style={{ 
@@ -258,7 +257,7 @@ function App() {
         <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-black/60 to-black/90 z-10 pointer-events-none" />
       </div>
 
-      {/* Particles */}
+   
       <div 
         className="fixed inset-0 z-[10000] pointer-events-none" 
         style={{ willChange: 'auto', opacity: coverLayerOpacity }}
@@ -271,36 +270,40 @@ function App() {
         />
       </div>
 
-      {/* Hero UI */}
-      <section className="relative z-20 h-screen flex flex-col items-center justify-center overflow-hidden pointer-events-none">
+      <section className="relative z-20 h-screen flex flex-col items-center justify-center overflow-hidden pointer-events-none px-4">
         <motion.div
           style={{ opacity: useTransform(scrollYProgress, [0, 0.05], [1, 0]) }}
-          className="flex flex-col items-center"
+          className="flex flex-col items-center w-full"
         >
-          <div className="absolute top-8 left-8 z-10 flex items-center gap-4 pointer-events-auto">
-            <div className="w-12 h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-sm">
-              <Trophy className="w-5 h-5 text-white/80" />
+          {/* Top left logo */}
+          <div className="absolute top-4 sm:top-8 left-4 sm:left-8 z-10 flex items-center gap-2 sm:gap-4 pointer-events-auto">
+            <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-sm">
+              <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-white/80" />
             </div>
             <div className="flex flex-col">
-              <span className="text-[10px] uppercase tracking-[0.3em] text-white/40 font-semibold">ARCHIVE</span>
-              <span className="text-xs font-medium tracking-wider">VOL. 01 — HISTORIC MOMENTS</span>
+              <span className="text-[8px] sm:text-[10px] uppercase tracking-[0.2em] sm:tracking-[0.3em] text-white/40 font-semibold">ARCHIVE</span>
+              <span className="text-[10px] sm:text-xs font-medium tracking-wider hidden sm:block">VOL. 01 — HISTORIC MOMENTS</span>
+              <span className="text-[10px] font-medium tracking-wider sm:hidden">VOL. 01</span>
             </div>
           </div>
 
-          <div className="absolute top-8 right-8 z-10 pointer-events-auto">
-            <button className="px-6 py-2 rounded-full border border-white/20 text-[10px] uppercase tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-500 backdrop-blur-sm">
-              ENTER GALLERY
+      
+          <div className="absolute top-4 sm:top-8 right-4 sm:right-8 z-10 pointer-events-auto">
+            <button className="px-4 sm:px-6 py-1.5 sm:py-2 rounded-full border border-white/20 text-[8px] sm:text-[10px] uppercase tracking-[0.15em] sm:tracking-[0.2em] hover:bg-white hover:text-black transition-all duration-500 backdrop-blur-sm">
+              GALLERY
             </button>
           </div>
 
+          
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 2, duration: 1 }}
-            className="absolute bottom-12 flex flex-col items-center gap-4 z-10"
+            className="absolute bottom-8 sm:bottom-12 flex flex-col items-center gap-3 sm:gap-4 z-10"
           >
-            <div className="flex items-center gap-8 text-[10px] uppercase tracking-[0.4em] text-white/50">
-              <span>SCROLL TO EXPLORE</span>
+            <div className="flex items-center gap-4 sm:gap-8 text-[9px] sm:text-[10px] uppercase tracking-[0.3em] sm:tracking-[0.4em] text-white/50">
+              <span className="hidden sm:inline">SCROLL TO EXPLORE</span>
+              <span className="sm:hidden">SWIPE UP</span>
             </div>
             <motion.div
               animate={{ y: [0, 8, 0] }}
@@ -312,10 +315,10 @@ function App() {
         </motion.div>
       </section>
 
-      {/* Additional scroll space */}
+   
       <section className="relative z-20 h-[200vh] pointer-events-none" />
 
-      {/* Trophy Layer */}
+      
       <div
         className="fixed inset-0 w-full h-full z-[10001]"
         style={{
@@ -327,7 +330,7 @@ function App() {
         <TrophyPage scrollProgress={relativeTrophyProgress} />
       </div>
 
-      {/* Deep Space Layer */}
+      
       <div
         className="fixed inset-0 w-full h-full z-[10002]"
         style={{

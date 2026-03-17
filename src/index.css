@@ -87,3 +87,28 @@ html.lenis, html.lenis body {
     opacity: 0.8;
   }
 }
+
+/* ============================================
+   MOBILE FIXES - Prevent broken layout
+   ============================================ */
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  box-sizing: border-box;
+}
+
+html, body {
+  overflow-x: hidden;
+  overscroll-behavior: none;
+}
+
+/* Hide scrollbar on mobile */
+@media (max-width: 768px) {
+  ::-webkit-scrollbar {
+    display: none;
+  }
+  body {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}

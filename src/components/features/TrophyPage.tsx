@@ -197,13 +197,14 @@ export const TrophyPage: React.FC<TrophyPageProps> = ({ scrollProgress }) => {
           left: 0,
           right: 0,
           textAlign: 'center',
-          fontSize: 11,
+          fontSize: 9,
           color: '#666',
           fontFamily: 'sans-serif',
           pointerEvents: 'none',
+          padding: '0 16px',
         }}
       >
-        &quot;World Cup Trophy&quot; by waimus is licensed under CC BY-SA 4.0
+        &quot;World Cup Trophy&quot; by waimus - CC BY-SA 4.0
       </div>
     </div>
   );

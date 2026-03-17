@@ -118,4 +118,29 @@
   .hero-orb[style*="left: 0"], .hero-orb[style*="left: 1"] {
     transform: translateX(20px);
   }
+
+  .hero-orb__core {
+    min-width: 35px;
+    min-height: 35px;
+  }
+  
+  .hero-orb__label {
+    font-size: 9px;
+    padding: 6px 10px;
+    max-width: 90px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  
+  .hero-orb__line {
+    max-height: 35px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-orb__label {
+    font-size: 8px;
+    padding: 5px 8px;
+  }
 }
