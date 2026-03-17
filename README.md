@@ -1,6 +1,6 @@
 # 🏆 Legends in Motion
 
-> **Best experienced on desktop.** Some features — including the 3D trophy room, particle animations, and deep space exploration — require WebGL and are optimized for desktop browsers. Mobile is supported but a desktop experience is strongly recommended.
+> **Best experienced on desktop.** Some features including the 3D trophy room, particle animations, and deep space exploration require WebGL and are optimized for desktop browsers. Mobile is supported but a desktop experience is strongly recommended.
 
 
 **Legends in Motion** is a high-performance, cinematic web experience celebrating the greatest moments in sports history. Powered by WebGL, React Three Fiber, and custom GPU particle shaders, it delivers a seamless scroll-driven narrative — from a particle-based hero section, through a fully interactive 3D trophy gallery, and into an immersive deep-space exploration of legendary sporting events.
