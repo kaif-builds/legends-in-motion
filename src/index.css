@@ -57,40 +57,38 @@ html.lenis, html.lenis body {
   background: #555;
 }
 
-/* ── Responsive Optimizations ── */
+
 @media (max-width: 768px) {
-    /* Intro text adjustments */
+    
     .text-\[10px\] {
-      font-size: 8px !important; /* Slightly smaller tracking labels */
+      font-size: 8px !important; 
     }
   
-    /* Make gallery scroll indicator more visible/reachable */
+    
     .absolute.bottom-12 {
-       bottom: 120px; /* Move up to clear potential browser bottom bars */
+       bottom: 120px; 
     }
 
-    /* Make sure background images cover fully on tall phones */
+    
     .fixed.inset-0 {
       height: 100vh; 
-      height: 100dvh; /* Dynamic usage for Safari address bar handling */
+      height: 100dvh; 
     }
 }
 
-/* Landscape Mode Adjustments (Tablets / Rotating Phones) */
+
 @media (max-height: 500px) and (orientation: landscape) {
   .hero-orb {
     transform: scale(0.8);
   }
-  /* Push content up slightly */
+  
   .absolute.bottom-12 {
     bottom: 24px;
     opacity: 0.8;
   }
 }
 
-/* ============================================
-   MOBILE FIXES - Prevent broken layout
-   ============================================ */
+
 
 * {
   -webkit-tap-highlight-color: transparent;
@@ -102,7 +100,7 @@ html, body {
   overscroll-behavior: none;
 }
 
-/* Hide scrollbar on mobile */
+
 @media (max-width: 768px) {
   ::-webkit-scrollbar {
     display: none;

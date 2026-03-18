@@ -14,7 +14,7 @@
   height: 0;
 }
 
-/* ── Flag Frame ── */
+
 .wc-flag-frame {
   position: absolute;
   top: 0;
@@ -22,7 +22,7 @@
   pointer-events: auto;
   cursor: pointer;
   will-change: transform;
-  /* offset so the center of the frame sits on the orbit point */
+ 
   transform: translate(-50%, -50%);
 }
 
@@ -52,7 +52,7 @@
     0 0 2px rgba(255, 255, 255, 0.15) inset;
 }
 
-/* ── Flag images ── */
+
 .wc-flag-img-wrapper {
   position: absolute;
   inset: 4px;
@@ -71,7 +71,7 @@
   transition: opacity 0.6s ease;
 }
 
-/* ── Tooltip ── */
+
 .wc-tooltip {
   position: absolute;
   bottom: calc(100% + 2px);
@@ -112,7 +112,7 @@
   letter-spacing: 0.02em;
 }
 
-/* ── Video Modal ── */
+
 .wc-video-overlay {
   position: fixed;
   top: 0; left: 0;

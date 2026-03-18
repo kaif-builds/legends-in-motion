@@ -182,17 +182,14 @@ const HeroOrb: React.FC<HeroOrbProps> = ({
           className="hero-orb__glow"
           style={{
             inset: -halo,
-            background: `radial-gradient(circle, rgba(${r},${g},${b},0.38) 0%, transparent 70%)`,
+            background: `radial-gradient(circle, rgba(255,240,180,0.55) 0%, rgba(${r},${g},${b},0.2) 45%, transparent 70%)`,
           }}
         />
         <div
           className="hero-orb__dot"
           style={{
-            inset: Math.max(2, size * 0.15),
-            boxShadow: [
-              `0 0 ${size * 0.4}px ${size * 0.15}px rgba(${r},${g},${b},0.9)`,
-              `0 0 ${halo}px ${halo * 0.4}px rgba(${r},${g},${b},0.4)`,
-            ].join(','),
+            inset: 0,
+            background: `radial-gradient(circle, rgba(255,255,255,0.95) 0%, rgba(255,230,150,0.6) 35%, rgba(${r},${g},${b},0.15) 65%, transparent 100%)`,
           }}
         />
       </div>

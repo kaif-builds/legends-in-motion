@@ -65,4 +65,10 @@
 
 ## Performance Note
 
-This project makes heavy use of WebGL. A dedicated GPU is recommended for the smoothest experience, though optimizations (instanced meshes, texture compression) are in place for
+This project makes heavy use of WebGL. A dedicated GPU is recommended for the smoothest experience, though optimizations (instanced meshes, texture compression) are in place for devices with integrated graphics.
+
+## Recent Updates
+
+*   **Mobile Responsiveness**: Implemented global touch configurations, locked overflow logic, and viewport-aware CSS to provide a cohesive experience across all devices.
+*   **Responsive Scaling**: Unified interface overlays, 3D canvases, and particle systems automatically adjust attributes like font-size, layout boundaries, and positioning depending on screen dimensions.
+*   **Custom Background Engine Fixed**: Transition timing elements and logic handlers across all views correctly track visibility on mobile resolutions.

@@ -1,24 +1,16 @@
-/* ═══════════════════════════════════════════════════════
-   DEEP SPACE PAGE — orb overlays only
-   Background: Three.js Canvas (same as TrophyPage)
-   Position / size / blur / opacity: set by RAF loop in JS
-   ═══════════════════════════════════════════════════════ */
-
 .deep-space {
   position: absolute;
   inset: 0;
   overflow: hidden;
 }
 
-/* ── Scene layer (Canvas + orbs) — this element is scaled on zoom ── */
 .deep-space-scene {
   position: absolute;
   inset: 0;
   will-change: transform;
-  transform-origin: center center; /* overridden by JS when zooming */
+  transform-origin: center center;
 }
 
-/* ── Hero orbs container ── */
 .deep-space-orbs {
   position: absolute;
   inset: 0;
@@ -26,7 +18,6 @@
   pointer-events: none;
 }
 
-/* ── Single hero orb wrapper ── */
 .hero-orb {
   position: absolute;
   display: flex;
@@ -34,11 +25,10 @@
   align-items: center;
   pointer-events: none;
   touch-action: none;
-  /* transform applied by RAF — no CSS animation here */
   will-change: transform;
 }
 
-/* ── Clickable core shell ── */
+/* ── Core: perfectly circular, sized by JS ── */
 .hero-orb__core {
   position: relative;
   border-radius: 50%;
@@ -47,32 +37,47 @@
   z-index: 2;
   transition: transform 0.25s ease;
   will-change: filter, transform;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.hero-orb__core:hover { transform: scale(1.35) !important; }
+.hero-orb__core:hover { transform: scale(1.45) !important; }
 
-/* ── Connector container (vertical line + label below) ── */
+/* ── Glow: radial halo behind the dot ── */
+.hero-orb__glow {
+  position: absolute;
+  border-radius: 50%;   /* ← was missing, caused rectangle */
+  pointer-events: none;
+}
+
+/* ── Dot: pure radial glow, no hard edge — matches floating particles ── */
+.hero-orb__dot {
+  position: absolute;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,230,160,0.8) 25%, rgba(255,200,80,0.3) 55%, transparent 75%);
+  pointer-events: none;
+  filter: blur(1.5px);
+}
+
 .hero-orb__connector {
   position: absolute;
-  top: 100%; /* starts right below orb center */
+  top: 100%;
   left: 50%;
   transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
   pointer-events: none;
-  /* fade/slide handled by RAF */
   will-change: opacity;
 }
 
-/* ── Vertical line growing down ── */
 .hero-orb__line {
   width: 1px;
   background: rgba(255, 255, 255, 0.3);
-  margin-top: 8px; /* gap from orb */
+  margin-top: 8px;
   will-change: height;
 }
 
-/* ── Text label "Click to Explore" ── */
 .hero-orb__label {
   margin-top: 6px;
   font-family: 'Inter', sans-serif;
@@ -81,49 +86,42 @@
   text-transform: uppercase;
   color: rgba(255, 255, 255, 0.6);
   white-space: nowrap;
-  pointer-events: auto; /* label also acts as click target */
+  pointer-events: auto;
   cursor: pointer;
   text-shadow: 0 2px 4px rgba(0,0,0,0.8);
   transition: color 0.3s ease;
 }
 .hero-orb__label:hover { color: #fff; }
 
-/* ── Mobile Optimizations ── */
+/* ── Mobile ── */
 @media (max-width: 768px) {
-  /* Hide lengthy text labels on mobile to avoid clutter */
-  .hero-orb__label span {
-    display: none;
-  }
-  .hero-orb__label::after {
-    content: "Tap";
-  }
-  
-  /* Make touch targets larger */
+  .hero-orb__label span { display: none; }
+  .hero-orb__label::after { content: "Tap"; }
+
   .hero-orb__core {
-    transform: scale(1.4); /* Make stars physically larger */
-    padding: 10px;        /* Invisible hit area padding */ 
+    transform: scale(1.4);
+    padding: 10px;
     margin: -10px;
   }
-  
-  /* Reduce connector line length */
-  .hero-orb__line { 
+
+  .hero-orb__connector { margin-top: 4px; }
+
+  .hero-orb__line {
     margin-top: 4px;
-    height: 30px !important; /* Force shorter lines */
+    height: 30px !important;
   }
 
-  /* Adjust positioning to prevent edge cutoff */
-  .hero-orb[style*="left: 9"], .hero-orb[style*="left: 8"] {
-    transform: translateX(-20px);
-  }
-  .hero-orb[style*="left: 0"], .hero-orb[style*="left: 1"] {
-    transform: translateX(20px);
-  }
+  .hero-orb[style*="left: 9"],
+  .hero-orb[style*="left: 8"] { transform: translateX(-20px); }
+
+  .hero-orb[style*="left: 0"],
+  .hero-orb[style*="left: 1"] { transform: translateX(20px); }
 
   .hero-orb__core {
     min-width: 35px;
     min-height: 35px;
   }
-  
+
   .hero-orb__label {
     font-size: 9px;
     padding: 6px 10px;
@@ -132,10 +130,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
   }
-  
-  .hero-orb__line {
-    max-height: 35px;
-  }
+
+  .hero-orb__line { max-height: 35px; }
 }
 
 @media (max-width: 480px) {

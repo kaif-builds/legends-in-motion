@@ -1,6 +1,3 @@
-/* SPACE ZOOM overlay layers (bloom, video, close).
-   Scene zoom is handled by DeepSpacePage scaling its own container. */
-
 .space-zoom-overlay {
   position: fixed;
   inset: 0;

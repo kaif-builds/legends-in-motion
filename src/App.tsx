@@ -179,7 +179,7 @@ function App() {
   const activeIndex = Math.min(phase, 4);
   const progress = scrollProgress;
 
-  // Particles fade - READY text shows at 0.54-0.64, fade after that
+  
   const bgFadeStart = 0.64;
   const bgFadeEnd = 0.72;
   let coverLayerOpacity = 1;
@@ -275,7 +275,7 @@ function App() {
           style={{ opacity: useTransform(scrollYProgress, [0, 0.05], [1, 0]) }}
           className="flex flex-col items-center w-full"
         >
-          {/* Top left logo */}
+          
           <div className="absolute top-4 sm:top-8 left-4 sm:left-8 z-10 flex items-center gap-2 sm:gap-4 pointer-events-auto">
             <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border border-white/20 flex items-center justify-center backdrop-blur-sm">
               <Trophy className="w-4 h-4 sm:w-5 sm:h-5 text-white/80" />
