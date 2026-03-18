@@ -5,7 +5,7 @@
 
 **Legends in Motion** is a high-performance, cinematic web experience celebrating the greatest moments in sports history. Powered by WebGL, React Three Fiber, and custom GPU particle shaders, it delivers a seamless scroll-driven narrative — from a particle-based hero section, through a fully interactive 3D trophy gallery, and into an immersive deep-space exploration of legendary sporting events.
 
----
+----
 
 ## ✨ Features
 
